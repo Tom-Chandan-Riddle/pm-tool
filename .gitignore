@@ -1,0 +1,6 @@
+node_modules/
+dist/
+coverage/
+.env
+apps/server/projects.json
+*.log
