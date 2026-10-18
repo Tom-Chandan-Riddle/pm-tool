@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { access, constants, readFile } from 'node:fs/promises';
+import { access, constants, readFile, stat } from 'node:fs/promises';
 import type { FastifyBaseLogger } from 'fastify';
 import { InvalidProjectFileError, ProjectNotFoundError } from './projects.errors.js';
 import {
@@ -51,6 +51,7 @@ async function assertIsFeaturesFile(featuresPath: string, log: FastifyBaseLogger
 // A11: the list reports a missing features file as a state, not an error.
 async function fileStatusOf(featuresPath: string): Promise<ProjectView['fileStatus']> {
   try {
+    if (!(await stat(featuresPath)).isFile()) return FILE_STATUS.missing;
     await access(featuresPath, constants.R_OK);
     return FILE_STATUS.ok;
   } catch {

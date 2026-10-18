@@ -1,4 +1,4 @@
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
@@ -308,6 +308,74 @@ describe('the projects file', () => {
 
     await writeFile(projectsFile, '[]');
     expect((await addProject(app, 'Fresh', featuresPath)).statusCode).toBe(201);
+  });
+
+  it('logs a corrupt file once however often it is read', async () => {
+    await writeFile(projectsFile, '{ not json');
+    const logs = captureLogs();
+    const app = await startApp({ logDestination: logs.stream }, true);
+
+    await listProjects(app);
+    await listProjects(app);
+    await listProjects(app);
+
+    const errors = logs.entries().filter((entry) => entry.level === PINO_LEVEL.error);
+    expect(errors).toHaveLength(1);
+  });
+
+  it('logs an invalid entry once however often it is read', async () => {
+    await writeFile(projectsFile, JSON.stringify([{ name: 'No id', featuresPath }]));
+    const logs = captureLogs();
+    const app = await startApp({ logDestination: logs.stream }, true);
+
+    await listProjects(app);
+    await listProjects(app);
+
+    const warnings = logs.entries().filter((entry) => entry.msg === 'skipping invalid project');
+    expect(warnings).toHaveLength(1);
+  });
+
+  it('logs again when the file is broken again after being fixed', async () => {
+    const logs = captureLogs();
+    const app = await startApp({ logDestination: logs.stream }, true);
+
+    await writeFile(projectsFile, '{ not json');
+    await listProjects(app);
+    await writeFile(projectsFile, '[]');
+    await listProjects(app);
+    await writeFile(projectsFile, '{ not json');
+    await listProjects(app);
+
+    const errors = logs.entries().filter((entry) => entry.level === PINO_LEVEL.error);
+    expect(errors).toHaveLength(2);
+  });
+
+  it('answers 500 with a problem body when projects.json is a folder', async () => {
+    await mkdir(projectsFile);
+    const response = await (await startApp()).inject({ method: 'GET', url: '/projects' });
+    expect(response.statusCode).toBe(500);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    expect(response.body).not.toContain('at ');
+  });
+
+  it('answers 500 and creates nothing when the projects folder does not exist', async () => {
+    const missingFolder = join(workFolder, 'no-such-folder');
+    const app = await buildApp({ ...testConfig, PROJECTS_FILE: join(missingFolder, 'p.json') });
+    apps.push(app);
+
+    const response = await addProject(app, 'Doomed', featuresPath);
+
+    expect(response.statusCode).toBe(500);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    await expect(readdir(missingFolder)).rejects.toThrow();
+  });
+
+  it('marks a project whose path has become a folder as missing', async () => {
+    const app = await startApp();
+    await addProject(app, 'Replaced', featuresPath);
+    await rm(featuresPath);
+    await mkdir(featuresPath);
+    expect((await listProjects(app))[0]?.fileStatus).toBe('missing');
   });
 
   it('marks a project whose features file is gone as missing instead of failing', async () => {

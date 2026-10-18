@@ -84,6 +84,7 @@ Expected depth:
 02:26 · ASSUME · A18 · Project paths must be absolute and end in .md, with length limits on name and path. Unreadable paths return 422 naming the cause. Tightens A10.
 02:26 · TASK · F01.4 · Input schema enforces A18 with field errors, and the 422 says whether the file is missing, unreadable or a folder, with the error code logged at warn. 8 new server tests, 68 passing and 1 skipped on Windows (the permission case). Stored entries are read with a looser schema so hand-edited paths still list.
 02:30 · TASK · F01.5 · The edit form now follows the project id and closes when its project disappears, and starting an edit clears an old add error. 4 new web tests, 24 in total. The stale selection case already behaved correctly from F01.2, so its test only pins it. The stored id is left in localStorage by choice.
+02:33 · TASK · F01.6 · A bad projects.json is logged once per distinct content, a failed write removes its temp file, and a path that became a folder lists as missing. 8 new server tests, 75 passing and 1 skipped. The cleanup test fails when the cleanup is removed. Only rename is mocked, since a late rename failure cannot be provoked on a real disk.
 
 ## Summary
 
