@@ -83,6 +83,7 @@ Expected depth:
 02:21 · TASK · F01.3 · BOM ignored, entries validated one by one with bad ones logged at warn, and writes refused with 409 over an unreadable file. 5 new server tests, 61 in total. The tests caught PUT returning 404 instead of 409 on a corrupt file, fixed with a strict read for edits.
 02:26 · ASSUME · A18 · Project paths must be absolute and end in .md, with length limits on name and path. Unreadable paths return 422 naming the cause. Tightens A10.
 02:26 · TASK · F01.4 · Input schema enforces A18 with field errors, and the 422 says whether the file is missing, unreadable or a folder, with the error code logged at warn. 8 new server tests, 68 passing and 1 skipped on Windows (the permission case). Stored entries are read with a looser schema so hand-edited paths still list.
+02:30 · TASK · F01.5 · The edit form now follows the project id and closes when its project disappears, and starting an edit clears an old add error. 4 new web tests, 24 in total. The stale selection case already behaved correctly from F01.2, so its test only pins it. The stored id is left in localStorage by choice.
 
 ## Summary
 

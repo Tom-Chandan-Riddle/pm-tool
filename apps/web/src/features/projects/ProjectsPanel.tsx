@@ -11,21 +11,25 @@ interface ProjectsPanelProps {
 }
 
 export function ProjectsPanel({ projects, selectedId, onSelect }: ProjectsPanelProps) {
-  const [editing, setEditing] = useState<ProjectView | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmingRemovalId, setConfirmingRemovalId] = useState<string | null>(null);
   const [addFormVersion, setAddFormVersion] = useState(0);
   const addProject = useAddProject();
   const editProject = useEditProject();
   const removeProject = useRemoveProject();
 
-  const startEditing = (project: ProjectView) => {
+  // Looked up on every render, so a project removed elsewhere closes its own edit form.
+  const editing = projects.find((project) => project.id === editingId);
+
+  const startEditing = (id: string) => {
+    addProject.reset();
     editProject.reset();
-    setEditing(project);
+    setEditingId(id);
   };
 
   const stopEditing = () => {
     editProject.reset();
-    setEditing(null);
+    setEditingId(null);
   };
 
   const startRemoval = (id: string) => {
@@ -67,7 +71,7 @@ export function ProjectsPanel({ projects, selectedId, onSelect }: ProjectsPanelP
               <button
                 type="button"
                 onClick={() => {
-                  startEditing(project);
+                  startEditing(project.id);
                 }}
               >
                 Edit {project.name}

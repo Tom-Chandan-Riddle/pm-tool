@@ -25,7 +25,8 @@ function json(body: unknown, status = 200): Response {
 
 /**
  * Stands in for the server at the network boundary. Keeps projects in memory, and a test can
- * override any request with `handler` to simulate a failure.
+ * override any request with `handler` to simulate a failure. `serverProjects` lets a test change
+ * the data behind the UI's back, as another tab would.
  */
 export function stubProjectsApi(initial: FakeProject[], handler: Handler = () => undefined) {
   const projects = [...initial];
@@ -57,7 +58,7 @@ export function stubProjectsApi(initial: FakeProject[], handler: Handler = () =>
     return Promise.resolve(new Response(null, { status: 204 }));
   });
   vi.stubGlobal('fetch', fetchStub);
-  return fetchStub;
+  return { fetchStub, serverProjects: projects };
 }
 
 export function withQueryClient(children: ReactNode) {

@@ -113,7 +113,7 @@ Tasks:
 - [x] F01.2 Web projects list, form and switcher
 - [x] F01.3 fix: stop a hand-edited projects.json being overwritten (strip BOM, keep valid entries, refuse to write over an unparseable file)
 - [x] F01.4 fix: require an absolute .md path (A10), name the cause in the 422, test the unreadable case
-- [ ] F01.5 fix: close the edit form when its project is removed, clear a selection that vanishes after a refetch, clear a stale add error
+- [x] F01.5 fix: close the edit form when its project is removed, clear a selection that vanishes after a refetch, clear a stale add error
 - [ ] F01.6 fix: log a corrupt projects.json once, remove the temp file when a write fails and test the 500, report a folder as missing
 
 ### F02 Parser

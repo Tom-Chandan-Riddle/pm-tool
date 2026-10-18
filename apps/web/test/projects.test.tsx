@@ -229,3 +229,65 @@ describe('switching projects', () => {
     expect(await screen.findByLabelText('Project')).toHaveValue('');
   });
 });
+
+describe('state that goes stale', () => {
+  it('closes the edit form when its project is removed from the row', async () => {
+    stubProjectsApi([pmTool]);
+    renderApp();
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit PM Tool' }));
+    expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove PM Tool' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, remove PM Tool' }));
+
+    expect(await screen.findByRole('button', { name: 'Add project' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+  });
+
+  it('closes the edit form when a refetch shows the project is gone', async () => {
+    const { serverProjects } = stubProjectsApi([pmTool, shop]);
+    renderApp();
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit PM Tool' }));
+
+    serverProjects.splice(0, 1);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Shop' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, remove Shop' }));
+
+    expect(await screen.findByRole('button', { name: 'Add project' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+  });
+
+  it('shows nothing selected when a refetch no longer has the selected project', async () => {
+    const { serverProjects } = stubProjectsApi([pmTool, shop]);
+    localStorage.setItem('pm-tool.selectedProjectId', 'p1');
+    renderApp();
+    expect(await screen.findByLabelText('Project')).toHaveValue('p1');
+
+    serverProjects.splice(0, 1);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Shop' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, remove Shop' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Project')).toHaveValue('');
+    });
+  });
+
+  it('forgets an old add error after the user opens edit and comes back', async () => {
+    stubProjectsApi([pmTool], ({ method }) =>
+      method === 'POST'
+        ? problem(422, { title: 'Invalid', detail: 'No feature heading' })
+        : undefined,
+    );
+    renderApp();
+    await screen.findByText('PM Tool', { selector: 'strong' });
+    await userEvent.type(screen.getByLabelText('Name'), 'Ghost');
+    await userEvent.type(screen.getByLabelText('Path to FEATURES.md'), 'C:/x.md');
+    await userEvent.click(screen.getByRole('button', { name: 'Add project' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No feature heading');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit PM Tool' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+});
