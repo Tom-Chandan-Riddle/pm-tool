@@ -78,6 +78,7 @@ Expected depth:
 02:07 · TASK · F01.1 · Projects store, service and routes with problem+json errors, PROJECTS_FILE config and a .http file. 20 new tests, 56 server tests in total. Schemas stay in the server for now because packages/shared resolves through dist, which typecheck runs before. A relative featuresPath is stored as typed.
 02:15 · ASSUME · A15–A16 · Selected project remembered in localStorage, and removal asks for confirmation on the row.
 02:15 · TASK · F01.2 · Web projects list, add/edit form, remove with confirmation and a switcher, with loading, empty, error and file-not-found states. 16 new web tests against a stubbed fetch, 20 web tests in total. Types are plain interfaces in the web feature until F02 settles the shared package build order.
+02:18 · REVIEW · F01 · Two agents: 0 Must fix, 5 Should fix, 8 Notes after merging. All accepted as F01.3 to F01.6: hand-edited file protection, path rules and 422 reasons, web stale state, logging and cleanup. Rejected: duplicate-path check (A13 allows it), double-submit test (button is disabled while pending), size cap, abort signal and a version column, as not worth it for one local user.
 
 ## Summary
 

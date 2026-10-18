@@ -109,6 +109,10 @@ Acceptance criteria:
 Tasks:
 - [x] F01.1 Projects store, service and routes with tests and `.http` file
 - [x] F01.2 Web projects list, form and switcher
+- [ ] F01.3 fix: stop a hand-edited projects.json being overwritten (strip BOM, keep valid entries, refuse to write over an unparseable file)
+- [ ] F01.4 fix: require an absolute .md path (A10), name the cause in the 422, test the unreadable case
+- [ ] F01.5 fix: close the edit form when its project is removed, clear a selection that vanishes after a refetch, clear a stale add error
+- [ ] F01.6 fix: log a corrupt projects.json once, remove the temp file when a write fails and test the 500, report a folder as missing
 
 ### F02 Parser
 Priority: Must · Status: Todo · Branch: feature/F02-parser · Estimate: 40 min
@@ -195,3 +199,4 @@ Tasks:
 |---|---|---|
 | 19 Oct | Plan created for Phase 1 (F00–F05) | /kickoff |
 | 19 Oct | Added F00.3–F00.6 (fixes) to F00 after review of the branch | /review |
+| 19 Oct | Added F01.3–F01.6 (fixes) to F01 after review of the branch | /review |
