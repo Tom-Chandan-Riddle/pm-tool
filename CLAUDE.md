@@ -279,3 +279,7 @@ FEATURES.md, PROCESS-LOG.md, README.md and commit messages are read by other eng
 ## Rules learned during this session
 
 <!-- /feedback appends rules here as R1, R2... -->
+
+- Ask every question with the AskUserQuestion picker, never as a prose list. Give 2-4 clear options, put the recommended one first and mark it "(Recommended)", and keep the free-text "Other" option last. Max four questions per call; batch the rest.
+
+- Kickoff overrides (see FEATURES.md Decisions): no database, projects in `apps/server/projects.json` behind one store module. No caching beyond the in-memory snapshot. `chokidar` v4 for folder watching. Charts are plain SVG and CSS. `concurrently` runs `npm run dev`.

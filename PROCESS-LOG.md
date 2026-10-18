@@ -9,9 +9,9 @@ Entries are appended, never edited. Times are IST. Each entry goes into the same
 | Item | Value |
 |---|---|
 | Engineer | Chandan Sushma Shankar |
-| AI coding tool | Claude Code in VS Code. Model and effort: _filled by /kickoff_ |
-| Base commit | _filled by /kickoff_ |
-| Repo state at start | _filled by /kickoff_ |
+| AI coding tool | Claude Code in VS Code. Model and effort: Sonnet 5.5 (claude-sonnet-5-5), low effort |
+| Base commit | 8b83388 |
+| Repo state at start | Greenfield. Docs and workflow files only, no package.json, no code. |
 
 ## Working agreement
 
@@ -54,6 +54,17 @@ Expected depth:
 -->
 
 ## Log
+00:19 · RULE · — · Questions to the engineer go through the AskUserQuestion picker with a marked recommendation and an Other option last. Added to CLAUDE.md on request.
+00:21 · START · — · Base commit 8b83388. Scope is Phase 1 of PM-TOOL-SPEC.md (F01–F05, no AI), React and TypeScript with a Node server.
+00:21 · READ · — · Greenfield repo with workflow docs only. Spec decisions D1–D6 and answers Q1–Q3 are fixed. Gaps found: log time has no date, review accepted/rejected has no field, status fallback unstated. Risks: Windows file watching, loose parser format, no slack in an all-Must scope.
+00:21 · DECISION · D1 · No database. Projects in projects.json behind one store module. SQLite and Drizzle were the alternative, but the spec names the file.
+00:21 · DECISION · D2 · npm workspaces with apps/server, apps/web and packages/shared, so parser and schemas are shared.
+00:21 · DECISION · D3 · chokidar v4 watches the folder. Plain fs.watch was the alternative, but chokidar handles Windows renames better.
+00:21 · DECISION · D4 · Plain SVG for charts. A chart library was rejected for the few charts needed.
+00:21 · DECISION · D5 · concurrently for npm run dev, as the spec wants one command.
+00:21 · DECISION · D6 · No cache beyond the in-memory snapshot per watched project.
+00:21 · ASSUME · A1–A10 · Ten assumptions approved: projects.json location, write scope of read-only, status fallback, metadata line format, current feature, actual-time rule, review keywords, single watcher, no pagination, path rules. Reasons are in FEATURES.md.
+00:21 · PLAN · F00–F05 · Six features, 200 minutes of Must work against 6 hours available. F02 comes before F03 because the watcher publishes parsed snapshots.
 
 ## Summary
 
