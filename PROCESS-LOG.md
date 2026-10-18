@@ -69,6 +69,7 @@ Expected depth:
 00:50 · TASK · F00.1 · Workspaces, strict config, Fastify app with correlation ID, problem+json errors, zod config, health routes and Scalar in development. 14 tests, verify green.
 01:05 · TASK · F00.2 · Vite React app with TanStack Query, root error boundary, proxy to the server, and a concurrently dev script. 4 web tests, 18 in total, verify green.
 01:08 · REVIEW · F00 · Two agents: 1 Must fix, 4 Should fix, 3 Notes after merging. All four fixes accepted as F00.3 to F00.6, including the shutdown and fatal-flush note. Rejected: config edge-case tests, since the schema already rejects those inputs.
+01:12 · TASK · F00.3 · Fastify 4xx errors (bad JSON, 415, 413) now return problem+json with the correct status instead of 500. 4 new tests, 22 in total.
 
 ## Summary
 

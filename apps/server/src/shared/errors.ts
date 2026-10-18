@@ -1,3 +1,4 @@
+import { STATUS_CODES } from 'node:http';
 import type { FastifyError, FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { hasZodFastifySchemaValidationErrors } from 'fastify-type-provider-zod';
 
@@ -36,6 +37,17 @@ function sendProblem(reply: FastifyReply, request: FastifyRequest, problem: Prob
   return reply.status(problem.status).type(PROBLEM_CONTENT_TYPE).send(body);
 }
 
+const FIRST_CLIENT_ERROR_STATUS = 400;
+const LAST_CLIENT_ERROR_STATUS = 499;
+
+function isClientError(error: FastifyError): error is FastifyError & { statusCode: number } {
+  return (
+    error.statusCode !== undefined &&
+    error.statusCode >= FIRST_CLIENT_ERROR_STATUS &&
+    error.statusCode <= LAST_CLIENT_ERROR_STATUS
+  );
+}
+
 function toFieldErrors(error: FastifyError): FieldError[] {
   if (!hasZodFastifySchemaValidationErrors(error)) return [];
   return error.validation.map((issue) => ({
@@ -58,6 +70,13 @@ export function registerErrorHandler(app: FastifyInstance): void {
       const errors = toFieldErrors(error);
       request.log.warn({ errors }, 'request validation failed');
       return sendProblem(reply, request, { title: 'Invalid request', status: 400, errors });
+    }
+    if (isClientError(error)) {
+      request.log.warn({ status: error.statusCode, code: error.code }, 'request rejected');
+      return sendProblem(reply, request, {
+        title: STATUS_CODES[error.statusCode] ?? 'Bad Request',
+        status: error.statusCode,
+      });
     }
     request.log.error({ err: error }, 'unexpected error');
     return sendProblem(reply, request, { title: 'Internal Server Error', status: 500 });

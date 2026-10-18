@@ -23,6 +23,11 @@ beforeEach(async () => {
       { schema: { querystring: z.object({ count: z.coerce.number().int() }) } },
       (request) => ({ count: request.query.count }),
     );
+  app.post('/submit', () => ({ accepted: true }));
+  app.post('/small', { bodyLimit: 10 }, () => ({ accepted: true }));
+  app.get('/server-fault', () => {
+    throw Object.assign(new Error('upstream exploded'), { statusCode: 502 });
+  });
 });
 
 afterEach(async () => {
@@ -67,6 +72,54 @@ describe('error handling', () => {
     const response = await app.inject({ method: 'GET', url: '/nope' });
     expect(response.statusCode).toBe(404);
     expect(response.headers['content-type']).toContain('application/problem+json');
+  });
+});
+
+describe('client errors raised by Fastify', () => {
+  it('maps a malformed JSON body to 400 problem+json without parser details', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/submit',
+      headers: { 'content-type': 'application/json', 'x-correlation-id': 'bad-json-1' },
+      payload: '{bad',
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    expect(response.json()).toEqual({
+      type: 'about:blank',
+      title: 'Bad Request',
+      status: 400,
+      correlationId: 'bad-json-1',
+    });
+  });
+
+  it('maps an unsupported content type to 415 problem+json', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/submit',
+      headers: { 'content-type': 'application/x-unknown' },
+      payload: 'hello',
+    });
+    expect(response.statusCode).toBe(415);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    expect(response.json()).toMatchObject({ title: 'Unsupported Media Type', status: 415 });
+  });
+
+  it('maps a body over the limit to 413 problem+json', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/small',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ text: 'far too long for ten bytes' }),
+    });
+    expect(response.statusCode).toBe(413);
+    expect(response.json()).toMatchObject({ title: 'Payload Too Large', status: 413 });
+  });
+
+  it('keeps a server-side failure with a 5xx status code as a 500', async () => {
+    const response = await app.inject({ method: 'GET', url: '/server-fault' });
+    expect(response.statusCode).toBe(500);
+    expect(response.body).not.toContain('upstream exploded');
   });
 });
 
