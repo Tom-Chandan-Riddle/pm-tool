@@ -46,3 +46,15 @@ POST {{baseUrl}}/projects
 Content-Type: application/json
 
 { "name": "Blocked", "featuresPath": "C:/CHANDAN S S/Claude Workspace/Claude Code/pm-tool/FEATURES.md" }
+
+### Failure: a relative path returns 400
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "Relative", "featuresPath": "FEATURES.md" }
+
+### Failure: a path that is not .md returns 400
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "Text", "featuresPath": "C:/Windows/win.ini" }

@@ -19,13 +19,29 @@ export interface ProjectService {
   remove(id: string): Promise<void>;
 }
 
-// A10: any readable file with at least one "### F" heading is accepted.
-async function assertIsFeaturesFile(featuresPath: string): Promise<void> {
+function describeUnreadable(featuresPath: string, code: unknown): string {
+  switch (code) {
+    case 'ENOENT':
+      return `No file at ${featuresPath}`;
+    case 'EACCES':
+    case 'EPERM':
+      return `No permission to read ${featuresPath}`;
+    case 'EISDIR':
+      return `${featuresPath} is a folder, not a file`;
+    default:
+      return `Cannot read ${featuresPath}`;
+  }
+}
+
+// A10, A18: a readable file with at least one "### F" heading is accepted.
+async function assertIsFeaturesFile(featuresPath: string, log: FastifyBaseLogger): Promise<void> {
   let text: string;
   try {
     text = await readFile(featuresPath, 'utf8');
-  } catch {
-    throw new InvalidProjectFileError(`Cannot read a file at ${featuresPath}`);
+  } catch (error) {
+    const code = error instanceof Error && 'code' in error ? error.code : undefined;
+    log.warn({ featuresPath, code }, 'features file cannot be read');
+    throw new InvalidProjectFileError(describeUnreadable(featuresPath, code));
   }
   if (!FEATURE_HEADING.test(text)) {
     throw new InvalidProjectFileError(`${featuresPath} has no "### F" feature heading`);
@@ -60,7 +76,7 @@ export function createProjectService(store: ProjectStore, log: FastifyBaseLogger
     },
 
     async add(input) {
-      await assertIsFeaturesFile(input.featuresPath);
+      await assertIsFeaturesFile(input.featuresPath, log);
       const project: Project = { id: randomUUID(), ...input };
       await store.update((projects) => ({ projects: [...projects, project], result: undefined }));
       log.info({ projectId: project.id }, 'project added');
@@ -72,7 +88,7 @@ export function createProjectService(store: ProjectStore, log: FastifyBaseLogger
       if (!existing) throw new ProjectNotFoundError(id);
       // A14: only a changed path is checked again, so a rename works while the file is missing.
       if (existing.featuresPath !== input.featuresPath) {
-        await assertIsFeaturesFile(input.featuresPath);
+        await assertIsFeaturesFile(input.featuresPath, log);
       }
       const updated: Project = { id, ...input };
       await store.update((projects) => ({

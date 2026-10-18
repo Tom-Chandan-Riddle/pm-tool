@@ -81,6 +81,8 @@ Expected depth:
 02:18 · REVIEW · F01 · Two agents: 0 Must fix, 5 Should fix, 8 Notes after merging. All accepted as F01.3 to F01.6: hand-edited file protection, path rules and 422 reasons, web stale state, logging and cleanup. Rejected: duplicate-path check (A13 allows it), double-submit test (button is disabled while pending), size cap, abort signal and a version column, as not worth it for one local user.
 02:21 · ASSUME · A17 · A projects.json the server cannot fully read is never overwritten: add, edit and remove return 409 until it is fixed by hand. Supersedes A12.
 02:21 · TASK · F01.3 · BOM ignored, entries validated one by one with bad ones logged at warn, and writes refused with 409 over an unreadable file. 5 new server tests, 61 in total. The tests caught PUT returning 404 instead of 409 on a corrupt file, fixed with a strict read for edits.
+02:26 · ASSUME · A18 · Project paths must be absolute and end in .md, with length limits on name and path. Unreadable paths return 422 naming the cause. Tightens A10.
+02:26 · TASK · F01.4 · Input schema enforces A18 with field errors, and the 422 says whether the file is missing, unreadable or a folder, with the error code logged at warn. 8 new server tests, 68 passing and 1 skipped on Windows (the permission case). Stored entries are read with a looser schema so hand-edited paths still list.
 
 ## Summary
 

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
@@ -66,15 +66,64 @@ describe('adding a project', () => {
     const response = await addProject(app, 'Ghost', join(workFolder, 'missing.md'));
     expect(response.statusCode).toBe(422);
     expect(response.headers['content-type']).toContain('application/problem+json');
-    expect(response.json<{ detail: string }>().detail).toContain('Cannot read a file');
+    expect(response.json<{ detail: string }>().detail).toContain('No file at');
   });
 
   it('rejects a folder with 422', async () => {
-    const folder = join(workFolder, 'folder');
+    const folder = join(workFolder, 'folder.md');
     await mkdir(folder);
     const response = await addProject(await startApp(), 'Folder', folder);
     expect(response.statusCode).toBe(422);
+    expect(response.json<{ detail: string }>().detail).toContain('is a folder');
   });
+
+  it('rejects a relative path with a field error', async () => {
+    const response = await addProject(await startApp(), 'Relative', 'FEATURES.md');
+    expect(response.statusCode).toBe(400);
+    expect(response.json<{ errors: unknown[] }>().errors).toEqual([
+      { field: 'featuresPath', message: 'Must be an absolute path' },
+    ]);
+  });
+
+  it('rejects a readable file that is not markdown without reading it', async () => {
+    const notes = join(workFolder, 'notes.txt');
+    await writeFile(notes, '### F01 Looks like features');
+    const response = await addProject(await startApp(), 'Text', notes);
+    expect(response.statusCode).toBe(400);
+    expect(response.json<{ errors: unknown[] }>().errors).toEqual([
+      { field: 'featuresPath', message: 'Must be a .md file' },
+    ]);
+  });
+
+  it('accepts an upper-case .MD extension', async () => {
+    const upper = join(workFolder, 'FEATURES.MD');
+    await writeFile(upper, '### F01 Shouting\n');
+    expect((await addProject(await startApp(), 'Upper', upper)).statusCode).toBe(201);
+  });
+
+  it('rejects a name or path over the length limit', async () => {
+    const longPath = join(workFolder, `${'a'.repeat(1100)}.md`);
+    const response = await addProject(await startApp(), 'n'.repeat(201), longPath);
+    expect(response.statusCode).toBe(400);
+    const fields = response.json<{ errors: { field: string }[] }>().errors.map((e) => e.field);
+    expect(fields).toEqual(expect.arrayContaining(['name', 'featuresPath']));
+  });
+
+  it('rejects a path containing a null byte with 422', async () => {
+    const response = await addProject(await startApp(), 'Null', join(workFolder, 'a\0b.md'));
+    expect(response.statusCode).toBe(422);
+  });
+
+  // chmod does not block reads on Windows, so this can only run elsewhere.
+  it.skipIf(process.platform === 'win32')(
+    'says permission was denied for a file the server cannot read',
+    async () => {
+      await chmod(featuresPath, 0o000);
+      const response = await addProject(await startApp(), 'Locked', featuresPath);
+      expect(response.statusCode).toBe(422);
+      expect(response.json<{ detail: string }>().detail).toContain('No permission');
+    },
+  );
 
   it('rejects a file with no feature heading with 422', async () => {
     const notes = join(workFolder, 'notes.md');
@@ -126,6 +175,17 @@ describe('editing a project', () => {
       payload: { name: 'Old', featuresPath: join(workFolder, 'missing.md') },
     });
     expect(response.statusCode).toBe(422);
+  });
+
+  it('rejects a relative new path with 400', async () => {
+    const app = await startApp();
+    const created = (await addProject(app, 'Old', featuresPath)).json<ProjectBody>();
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/projects/${created.id}`,
+      payload: { name: 'Old', featuresPath: 'FEATURES.md' },
+    });
+    expect(response.statusCode).toBe(400);
   });
 
   it('allows a rename while the file is missing', async () => {
@@ -195,6 +255,13 @@ describe('the projects file', () => {
     expect(await listProjects(app)).toEqual([]);
     expect(logs.entries().some((entry) => entry.level === PINO_LEVEL.error)).toBe(true);
     expect(await readFile(projectsFile, 'utf8')).toBe('{ not json');
+  });
+
+  it('keeps listing a hand-edited entry whose path is relative', async () => {
+    const entry = { id: 'rel', name: 'Relative', featuresPath: 'FEATURES.md' };
+    await writeFile(projectsFile, JSON.stringify([entry]));
+    const listed = await listProjects(await startApp());
+    expect(listed.map((project) => project.id)).toEqual(['rel']);
   });
 
   it('loads a file that starts with a byte order mark', async () => {
