@@ -71,6 +71,7 @@ Expected depth:
 01:08 · REVIEW · F00 · Two agents: 1 Must fix, 4 Should fix, 3 Notes after merging. All four fixes accepted as F00.3 to F00.6, including the shutdown and fatal-flush note. Rejected: config edge-case tests, since the schema already rejects those inputs.
 01:12 · TASK · F00.3 · Fastify 4xx errors (bad JSON, 415, 413) now return problem+json with the correct status instead of 500. 4 new tests, 22 in total.
 01:51 · TASK · F00.4 · NODE_ENV defaults to production with development set through .env.development. Inbound correlation IDs limited to 1-128 characters of [w.-], otherwise replaced. Unknown routes logged at warn. 25 server tests.
+01:56 · TASK · F00.5 · Log capture for tests, working redact paths, and 6 tests for correlation ID on every log line, redaction, one error-level entry per unexpected error, and a warn entry for unknown routes. 30 server tests. Correction to the F00.4 entry: its pattern is [\w.-], the backslash was lost when writing the log.
 
 ## Summary
 

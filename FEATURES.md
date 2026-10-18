@@ -83,7 +83,7 @@ Tasks:
 - [x] F00.2 Web scaffold, error boundary, render test, `npm run dev`
 - [x] F00.3 fix: map Fastify 4xx errors (bad JSON, 415, 413) to problem+json instead of 500
 - [x] F00.4 fix: default NODE_ENV to production, validate inbound correlation IDs, log unknown routes at warn
-- [ ] F00.5 fix: test that logs carry the correlation ID and redact secrets, with working redact paths
+- [x] F00.5 fix: test that logs carry the correlation ID and redact secrets, with working redact paths
 - [ ] F00.6 fix: guard repeated shutdown signals, add a close timeout, flush the fatal log before exit
 
 ### F01 Projects
