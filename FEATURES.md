@@ -95,7 +95,7 @@ Tasks:
 - [x] F00.6 fix: guard repeated shutdown signals, add a close timeout, flush the fatal log before exit
 
 ### F01 Projects
-Priority: Must · Status: In Progress · Branch: feature/F01-projects · Estimate: 35 min
+Priority: Must · Status: Done · Branch: feature/F01-projects · Estimate: 35 min
 
 Approach: `apps/server/src/features/projects` is one Fastify plugin: `projects.store.ts` (reads and writes `projects.json` at an injected path), `projects.service.ts` (add, edit, remove, list, validates the features file), `projects.routes.ts` and `projects.http`. A new `PROJECTS_FILE` env var sets the store path. `Project` and its zod schemas go in `packages/shared` because the web uses them too. Failures are `ProblemError` subclasses: `ProjectNotFoundError` 404, `InvalidProjectFileError` 422 (A1, A2, A10). The web feature (`features/projects`) has a list, add/edit form and switcher on TanStack Query. Tested with `app.inject()` against real temp folders and a real `projects.json`.
 
