@@ -74,6 +74,9 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A32 | Only the first table in a section is read. A later table is ignored with a warning at its first line. A table with no separator row is not read and gets a warning at its first line. | Nothing is hidden silently, and rows after a stray blank line are reported. | 19 Oct |
 | A33 | An Approach runs from its `Approach:` line to the next label (`Acceptance criteria:`, `Tasks:` or the metadata line). Blank lines inside it are kept, and blank lines at its start and end are trimmed. | Approaches written as several paragraphs must not lose the later ones. | 19 Oct |
 | A34 | Only the first `Priority:` line of a feature is its metadata. A later line starting with `Priority:` is ignored with a warning at its line. | A stray line must not wipe the status, branch and estimate. | 19 Oct |
+| A35 | Starting a watch on a folder that does not exist fails with a clear error. A folder that disappears while watching is reported through the watcher's error callback. | The project list already shows a missing file, and the snapshot service decides what to show. | 19 Oct |
+| A36 | A file whose size or modified time keeps changing for more than 5 seconds is not read, and a warning is logged. The next file event starts a fresh attempt. | A half-written file must never be parsed. | 19 Oct |
+| A37 | When the features file is missing after the debounce, the update carries `featuresText: null`. A missing PROCESS-LOG.md is `logText: null` and never an error. | A deleted file must show as missing, and the log is optional (A10). | 19 Oct |
 
 ## Decisions
 
@@ -157,9 +160,9 @@ Tasks:
 - [x] F02.7 fix: first Priority line wins with a duplicate warning, and the approach runs to the next label across blank lines
 
 ### F03 Live updates
-Priority: Must · Status: Todo · Branch: feature/F03-live-updates · Estimate: 45 min
+Priority: Must · Status: In Progress · Branch: feature/F03-live-updates · Estimate: 45 min
 
-Approach: `features/watch` on the server. A watcher on the folder filters by filename, debounces 300 ms, waits for a stable size for 200 ms, then parses and publishes. Keeps the last good snapshot (A8). Snapshot route plus SSE route. Web hook subscribes with `EventSource`, updates the Query cache and shows the indicator. Tested with real files in temp folders.
+Approach: `apps/server/src/features/watch` is one Fastify plugin. `file-watcher.ts` is I/O only: it watches the project's folder with chokidar, keeps events for the two filenames, debounces 300 ms, waits until each file's size is stable for 200 ms, then reads both and calls `onChange({ featuresText, logText })`, where `null` means the file is missing. `close()` clears timers, closes chokidar and drops any read still in flight. `snapshot.service.ts` (F03.2) holds one watcher for the selected project (A8), parses with the shared parser, keeps the last good snapshot in memory, and publishes to subscribers. Routes: `GET /projects/:id/snapshot` and `GET /projects/:id/events` (SSE), both in zod and problem+json. A `ProjectSnapshot` type in `packages/shared` composes the parsed documents with warnings. The web hook (F03.3) uses `EventSource`, writes into the TanStack Query cache, and shows Live or Reconnecting. Tested against real files in temp folders with the debounce and stable-size times as options. Risks: Windows rename and recreate event sequences, timing-dependent tests (use polling waits, not fixed sleeps), and a watcher that outlives its project.
 
 Acceptance criteria:
 - [ ] A change to either file is parsed and pushed within one second
@@ -173,7 +176,7 @@ Acceptance criteria:
 - [ ] Switching projects closes the previous watcher; nothing leaks after shutdown
 
 Tasks:
-- [ ] F03.1 Folder watcher with debounce, stable-size read and recreate handling, tested on real files
+- [x] F03.1 Folder watcher with debounce, stable-size read and recreate handling, tested on real files
 - [ ] F03.2 Snapshot and SSE routes with keep-last-good
 - [ ] F03.3 Web live hook and Live/Reconnecting indicator
 

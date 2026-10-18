@@ -102,6 +102,8 @@ Expected depth:
 03:52 · ASSUME · A33–A34 · An Approach runs to the next label with blank lines kept, and only the first Priority line of a feature is its metadata, with a later one ignored and warned about.
 03:52 · TASK · F02.7 · The feature body keeps the first Priority line, warns about a duplicate, and reads an approach across blank lines to the next label. 7 new shared tests, 95 in total. My first edit script failed on an escape and applied nothing, so the new tests ran red before the change.
 03:54 · SHIP · F02 · Merged to main with a merge commit. 194 tests passing and 1 skipped on Windows (95 shared, 75 server, 24 web, 1 skipped permission test), verify green. Actual time about 60 min against a 40 min estimate, with the overrun in review fixes F02.4 to F02.7.
+04:09 · ASSUME · A35–A37 · Watching a missing folder fails with a clear error. A file that keeps changing for over 5 seconds is skipped with a warning. A missing features file is emitted as null and a missing log is never an error.
+04:09 · TASK · F03.1 · chokidar watcher on the project folder with debounce, stable-size wait, recreate handling and an idempotent close, plus readProjectFiles. 25 new server tests, 100 in total, run five more times without a failure. The stable-wait timeout is tested on its pure function, since real file events always supersede it.
 
 ## Summary
 
