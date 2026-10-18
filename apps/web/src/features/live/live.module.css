@@ -1,0 +1,36 @@
+.view {
+  margin: 1rem 0;
+}
+
+.indicator {
+  display: inline-block;
+  margin: 0 0 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid currentcolor;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+}
+
+.indicator::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.375rem;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.live {
+  color: #1a7f37;
+}
+
+.connecting,
+.reconnecting {
+  color: #9a6700;
+}
+
+.offline,
+.unreadable {
+  color: #b42318;
+}

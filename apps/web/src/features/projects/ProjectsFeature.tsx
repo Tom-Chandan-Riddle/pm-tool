@@ -1,3 +1,4 @@
+import { LiveFeature } from '../live/LiveFeature';
 import { ProjectsPanel } from './ProjectsPanel';
 import { ProjectSwitcher } from './ProjectSwitcher';
 import { useProjects } from './useProjects';
@@ -28,6 +29,7 @@ export function ProjectsFeature() {
   return (
     <>
       <ProjectSwitcher projects={projects.data} selectedId={validSelectedId} onSelect={select} />
+      <LiveFeature projectId={validSelectedId} />
       <ProjectsPanel projects={projects.data} selectedId={validSelectedId} onSelect={select} />
     </>
   );

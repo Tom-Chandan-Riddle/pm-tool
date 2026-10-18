@@ -109,6 +109,8 @@ Expected depth:
 04:35 · TASK · F03.2 · ProjectSnapshot type, pure buildSnapshot with keep-last-good, snapshot service and GET /projects/:id/snapshot. Root scripts now build the shared package first, checked from a clean dist. 13 new shared tests and 9 new server tests, 108 shared and 109 server in total. Prettier reformatted the fixture tables when run on packages, so they were restored from git.
 04:47 · ASSUME · A39–A40 · A project is watched while any stream is open for it. A project whose folder cannot be watched gets the missing snapshot and the stream then ends, so the browser retries every 2 seconds.
 04:47 · TASK · F03.3 · GET /projects/:id/events streams snapshots from one shared watcher per project, with keep-last-good, subscriber counting and clean shutdown. 14 new server tests, 123 in total, run four more times without a failure. Removing the stream-ending hook made shutdown hang and removing keep-last-good failed the recovery test. A first version restarted a watcher that was already running.
+05:04 · ASSUME · A41–A42 · The web shows five connection states: Connecting, Live, Reconnecting, Offline and Unreadable. Until the F04 board exists the live view shows one summary line.
+05:04 · TASK · F03.4 · Web live hook with an EventSource per selected project, query cache updates, a Live or Reconnecting indicator, and a one-line summary. 22 new web tests, 46 in total. Removing the stream cleanup failed five lifetime tests. The browser bundle grew from 81 to 106 kB gzipped because zod now validates snapshots there. Existing App tests needed a default fake EventSource in the setup, as jsdom has none.
 
 ## Summary
 
