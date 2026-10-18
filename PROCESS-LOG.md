@@ -68,6 +68,7 @@ Expected depth:
 00:50 · DECISION · D7 · TypeScript 6.0.3 instead of 7. npm resolved it as the version typescript-eslint supports; fallback was pre-approved at F00.1.
 00:50 · TASK · F00.1 · Workspaces, strict config, Fastify app with correlation ID, problem+json errors, zod config, health routes and Scalar in development. 14 tests, verify green.
 01:05 · TASK · F00.2 · Vite React app with TanStack Query, root error boundary, proxy to the server, and a concurrently dev script. 4 web tests, 18 in total, verify green.
+01:08 · REVIEW · F00 · Two agents: 1 Must fix, 4 Should fix, 3 Notes after merging. All four fixes accepted as F00.3 to F00.6, including the shutdown and fatal-flush note. Rejected: config edge-case tests, since the schema already rejects those inputs.
 
 ## Summary
 
