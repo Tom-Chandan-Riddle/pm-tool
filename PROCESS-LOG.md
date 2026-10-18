@@ -101,6 +101,7 @@ Expected depth:
 03:47 · TASK · F02.6 · Table reading handles escaped pipes, warns about a missing separator row and ignores later tables with a warning. 7 new shared tests, 88 in total. A pipe inside a code span still needs the backslash, as on GitHub.
 03:52 · ASSUME · A33–A34 · An Approach runs to the next label with blank lines kept, and only the first Priority line of a feature is its metadata, with a later one ignored and warned about.
 03:52 · TASK · F02.7 · The feature body keeps the first Priority line, warns about a duplicate, and reads an approach across blank lines to the next label. 7 new shared tests, 95 in total. My first edit script failed on an escape and applied nothing, so the new tests ran red before the change.
+03:54 · SHIP · F02 · Merged to main with a merge commit. 194 tests passing and 1 skipped on Windows (95 shared, 75 server, 24 web, 1 skipped permission test), verify green. Actual time about 60 min against a 40 min estimate, with the overrun in review fixes F02.4 to F02.7.
 
 ## Summary
 

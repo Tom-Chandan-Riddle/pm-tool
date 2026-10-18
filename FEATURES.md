@@ -133,19 +133,19 @@ Tasks:
 - [x] F01.6 fix: log a corrupt projects.json once, remove the temp file when a write fails and test the 500, report a folder as missing
 
 ### F02 Parser
-Priority: Must · Status: In Progress · Branch: feature/F02-parser · Estimate: 40 min
+Priority: Must · Status: Done · Branch: feature/F02-parser · Estimate: 40 min
 
 Approach: pure functions in `packages/shared/src/parser`, no I/O and no framework imports, one file per concern: `snapshot.ts` (zod schemas and `z.infer` types for `ProjectSnapshot`, `Feature`, `Criterion`, `Task`, `LogEvent`, `ParseWarning`), `features.parser.ts` (splits FEATURES.md into sections by `##` and `###` headings, then header, outline, assumptions, decisions, features and change log), `log.parser.ts` (F02.3). Each section parser returns `{ value, warnings }`, and a thin `parseFeaturesFile(text)` merges them, so a malformed section costs only itself. Metadata follows A3 and A4. The package keeps building to `dist`, so the server and web import the parser from `@pm-tool/shared` once it is exported from `index.ts`. Tests sit next to the package, run against this repo's own FEATURES.md and PROCESS-LOG.md copied into `test/fixtures`, plus malformed variants. Risk: the format is only defined by the template, so the parser reads headings and line shapes loosely and warns instead of throwing.
 
 Acceptance criteria:
-- [ ] Header, outline, assumptions, decisions, features and change log are parsed from a real sample file
-- [ ] Each feature has ID, name, priority, status, branch, estimate, approach, criteria and tasks with ticked state
-- [ ] `CR:`, `Fix:`, `amends F0X`, `(CR)` and `fix:` are recognised, and a superseded criterion is flagged
-- [ ] PROCESS-LOG entries `HH:MM · TYPE · ID · text` with an optional SHA become typed events
-- [ ] An unknown log type or malformed line becomes a warning and the rest still parses
-- [ ] A malformed feature section is skipped with a warning; other features still render
-- [ ] An unknown status becomes Todo with a warning (A3)
-- [ ] An empty file returns an empty snapshot with a warning, not an exception
+- [x] Header, outline, assumptions, decisions, features and change log are parsed from a real sample file
+- [x] Each feature has ID, name, priority, status, branch, estimate, approach, criteria and tasks with ticked state
+- [x] `CR:`, `Fix:`, `amends F0X`, `(CR)` and `fix:` are recognised, and a superseded criterion is flagged
+- [x] PROCESS-LOG entries `HH:MM · TYPE · ID · text` with an optional SHA become typed events
+- [x] An unknown log type or malformed line becomes a warning and the rest still parses
+- [x] A malformed feature section is skipped with a warning; other features still render
+- [x] An unknown status becomes Todo with a warning (A3)
+- [x] An empty file returns an empty snapshot with a warning, not an exception
 
 Tasks:
 - [x] F02.1 Snapshot types and FEATURES.md parser for the core sections
