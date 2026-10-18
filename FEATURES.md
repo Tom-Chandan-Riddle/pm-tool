@@ -143,6 +143,10 @@ Tasks:
 - [x] F02.1 Snapshot types and FEATURES.md parser for the core sections
 - [x] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
 - [x] F02.3 PROCESS-LOG.md event parser
+- [ ] F02.4 fix: skip fenced lines in feature bodies and the log, and match fence marker type and length
+- [ ] F02.5 fix: keep log entries with a trailing comment, warn on an unclosed comment, trim fields around the separator
+- [ ] F02.6 fix: warn when a table has no separator row, support escaped pipes, read only the first table
+- [ ] F02.7 fix: first Priority line wins with a duplicate warning, and the approach runs to the next label across blank lines
 
 ### F03 Live updates
 Priority: Must · Status: Todo · Branch: feature/F03-live-updates · Estimate: 45 min
@@ -210,3 +214,4 @@ Tasks:
 | 19 Oct | Plan created for Phase 1 (F00–F05) | /kickoff |
 | 19 Oct | Added F00.3–F00.6 (fixes) to F00 after review of the branch | /review |
 | 19 Oct | Added F01.3–F01.6 (fixes) to F01 after review of the branch | /review |
+| 19 Oct | Added F02.4–F02.7 (fixes) to F02 after review of the branch | /review |
