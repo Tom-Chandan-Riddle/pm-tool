@@ -58,6 +58,22 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A16 | Removing a project asks for confirmation on the row first. | It is an easy click to make by mistake. | 19 Oct |
 | A17 | A projects.json that is not valid JSON, is not an array, or has any invalid entry is never overwritten. Reads list the valid entries and log the rest. Add, edit and remove return 409 until the file is fixed by hand. A leading byte order mark is ignored. | A hand-edited file must not be lost. Supersedes A12. | 19 Oct |
 | A18 | A project path must be absolute and end in `.md` (any case), at most 1024 characters. A name is at most 200. Breaking a rule returns 400 with a field error. A path that cannot be read returns 422 naming the cause: missing, no permission, or a folder. Tightens A10. | Stops arbitrary files being probed and avoids paths that depend on where the server started. | 19 Oct |
+| A19 | The solution outline is kept as one raw markdown string in the snapshot. | The board only shows it as text. | 19 Oct |
+| A20 | Snapshot types and schemas live in `packages/shared` and are exported from its `index.ts`. | Server and web both need them. | 19 Oct |
+| A21 | A parse warning is `{section, line, message}` with a 1-based line number in the source file. | The user can find the bad line. | 19 Oct |
+| A22 | A criterion is superseded when its text has a `~~struck~~` span. A `superseded by F0Y` note in it fills the link, otherwise the link is empty. | Matches the pm-drill rule for striking replaced criteria. | 19 Oct |
+| A23 | Two features with the same ID are both kept, and the second gets a warning. | Nothing the user wrote is hidden. | 19 Oct |
+| A24 | A feature heading `F0X CR: name (amends F0Y)` or `F0X Fix: name (amends F0Y)` sets kind and amends, and the name has the marker and amends removed. Without amends it warns and amends is empty. Task kind comes from a `fix:` prefix or a `(CR)` suffix, and the task text is kept as written. | Keeps the board free to render its own badge. | 19 Oct |
+| A25 | A log entry's optional SHA is a 7 to 40 character hex word after the last ` · ` separator, and is removed from the text. A log entry's ID of `—`, `–` or `-` is read as none. | The log template only says to add the short SHA where there is one. | 19 Oct |
+| A26 | Only lines under the `## Log` heading are log entries. A non-blank line there that is not an entry gets a warning, and `<!-- -->` blocks are skipped. | The setup tables, template and summary must never produce events. | 19 Oct |
+| A27 | A code fence opens with three or more backticks or tildes and closes only on the same character, at least as many of them, with nothing after. An unclosed fence hides the rest of the file and gets a warning at its opening line. | The CommonMark rule, so a sample that shows a fence is not cut short. | 19 Oct |
+| A28 | Fenced lines never switch mode or create items in a feature body or the log. In an Approach they are kept as text. In the log they are ignored with no warning. | Code samples are documentation, not entries. | 19 Oct |
+| A29 | In the log, `<!-- -->` spans are removed and the rest of the line is still parsed. An unclosed `<!--` hides the rest of the Log section and gets a warning at its opening line, like an unclosed fence. | A comment must not delete a real entry, and a half-typed one must be visible. | 19 Oct |
+| A30 | The separator between log fields is a middle dot with any whitespace around it, and the fields are trimmed. The text after the third separator is kept as written. | Hand-typed entries with extra spaces or tabs should still count. | 19 Oct |
+| A31 | In a table, a pipe splits cells unless it is written as `\|`, which stays in the cell as a plain pipe. A pipe inside a code span still needs the backslash. | The GitHub table rule. | 19 Oct |
+| A32 | Only the first table in a section is read. A later table is ignored with a warning at its first line. A table with no separator row is not read and gets a warning at its first line. | Nothing is hidden silently, and rows after a stray blank line are reported. | 19 Oct |
+| A33 | An Approach runs from its `Approach:` line to the next label (`Acceptance criteria:`, `Tasks:` or the metadata line). Blank lines inside it are kept, and blank lines at its start and end are trimmed. | Approaches written as several paragraphs must not lose the later ones. | 19 Oct |
+| A34 | Only the first `Priority:` line of a feature is its metadata. A later line starting with `Priority:` is ignored with a warning at its line. | A stray line must not wipe the status, branch and estimate. | 19 Oct |
 
 ## Decisions
 
@@ -117,24 +133,28 @@ Tasks:
 - [x] F01.6 fix: log a corrupt projects.json once, remove the temp file when a write fails and test the 500, report a folder as missing
 
 ### F02 Parser
-Priority: Must · Status: Todo · Branch: feature/F02-parser · Estimate: 40 min
+Priority: Must · Status: Done · Branch: feature/F02-parser · Estimate: 40 min
 
-Approach: pure functions in `packages/shared/src/parser`, one per section, each returning `{value, warnings}`. Fixtures are this repo's FEATURES.md and PROCESS-LOG.md plus malformed copies. Metadata rules from A3 and A4.
+Approach: pure functions in `packages/shared/src/parser`, no I/O and no framework imports, one file per concern: `snapshot.ts` (zod schemas and `z.infer` types for `ProjectSnapshot`, `Feature`, `Criterion`, `Task`, `LogEvent`, `ParseWarning`), `features.parser.ts` (splits FEATURES.md into sections by `##` and `###` headings, then header, outline, assumptions, decisions, features and change log), `log.parser.ts` (F02.3). Each section parser returns `{ value, warnings }`, and a thin `parseFeaturesFile(text)` merges them, so a malformed section costs only itself. Metadata follows A3 and A4. The package keeps building to `dist`, so the server and web import the parser from `@pm-tool/shared` once it is exported from `index.ts`. Tests sit next to the package, run against this repo's own FEATURES.md and PROCESS-LOG.md copied into `test/fixtures`, plus malformed variants. Risk: the format is only defined by the template, so the parser reads headings and line shapes loosely and warns instead of throwing.
 
 Acceptance criteria:
-- [ ] Header, outline, assumptions, decisions, features and change log are parsed from a real sample file
-- [ ] Each feature has ID, name, priority, status, branch, estimate, approach, criteria and tasks with ticked state
-- [ ] `CR:`, `Fix:`, `amends F0X`, `(CR)` and `fix:` are recognised, and a superseded criterion is flagged
-- [ ] PROCESS-LOG entries `HH:MM · TYPE · ID · text` with an optional SHA become typed events
-- [ ] An unknown log type or malformed line becomes a warning and the rest still parses
-- [ ] A malformed feature section is skipped with a warning; other features still render
-- [ ] An unknown status becomes Todo with a warning (A3)
-- [ ] An empty file returns an empty snapshot with a warning, not an exception
+- [x] Header, outline, assumptions, decisions, features and change log are parsed from a real sample file
+- [x] Each feature has ID, name, priority, status, branch, estimate, approach, criteria and tasks with ticked state
+- [x] `CR:`, `Fix:`, `amends F0X`, `(CR)` and `fix:` are recognised, and a superseded criterion is flagged
+- [x] PROCESS-LOG entries `HH:MM · TYPE · ID · text` with an optional SHA become typed events
+- [x] An unknown log type or malformed line becomes a warning and the rest still parses
+- [x] A malformed feature section is skipped with a warning; other features still render
+- [x] An unknown status becomes Todo with a warning (A3)
+- [x] An empty file returns an empty snapshot with a warning, not an exception
 
 Tasks:
-- [ ] F02.1 Snapshot types and FEATURES.md parser for the core sections
-- [ ] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
-- [ ] F02.3 PROCESS-LOG.md event parser
+- [x] F02.1 Snapshot types and FEATURES.md parser for the core sections
+- [x] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
+- [x] F02.3 PROCESS-LOG.md event parser
+- [x] F02.4 fix: skip fenced lines in feature bodies and the log, and match fence marker type and length
+- [x] F02.5 fix: keep log entries with a trailing comment, warn on an unclosed comment, trim fields around the separator
+- [x] F02.6 fix: warn when a table has no separator row, support escaped pipes, read only the first table
+- [x] F02.7 fix: first Priority line wins with a duplicate warning, and the approach runs to the next label across blank lines
 
 ### F03 Live updates
 Priority: Must · Status: Todo · Branch: feature/F03-live-updates · Estimate: 45 min
@@ -202,3 +222,4 @@ Tasks:
 | 19 Oct | Plan created for Phase 1 (F00–F05) | /kickoff |
 | 19 Oct | Added F00.3–F00.6 (fixes) to F00 after review of the branch | /review |
 | 19 Oct | Added F01.3–F01.6 (fixes) to F01 after review of the branch | /review |
+| 19 Oct | Added F02.4–F02.7 (fixes) to F02 after review of the branch | /review |

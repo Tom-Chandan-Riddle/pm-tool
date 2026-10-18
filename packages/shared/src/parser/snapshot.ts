@@ -1,0 +1,123 @@
+import { z } from 'zod';
+
+export const FEATURE_STATUSES = ['Todo', 'In Progress', 'Done', 'Cut'] as const;
+export const LOG_EVENT_TYPES = [
+  'START',
+  'READ',
+  'ASSUME',
+  'PLAN',
+  'DECISION',
+  'TASK',
+  'AI-FIX',
+  'RULE',
+  'REVIEW',
+  'SHIP',
+  'CHECKPOINT',
+  'CUT',
+  'FREEZE',
+  'RETRO',
+] as const;
+export const FEATURE_KINDS = ['feature', 'change-request', 'fix'] as const;
+export const TASK_KINDS = ['task', 'change-request', 'fix'] as const;
+
+// A21: line is 1-based in the source file.
+export const parseWarningSchema = z.object({
+  section: z.string(),
+  line: z.number().int().positive(),
+  message: z.string(),
+});
+
+export const headerSchema = z.object({
+  baseCommit: z.string(),
+  repoState: z.string(),
+  model: z.string(),
+});
+
+export const assumptionSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  reason: z.string(),
+  approved: z.string(),
+  superseded: z.boolean(),
+});
+
+export const decisionSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  alternatives: z.string(),
+  reason: z.string(),
+});
+
+export const criterionSchema = z.object({
+  text: z.string(),
+  ticked: z.boolean(),
+  // A22: a struck-through span marks a criterion superseded.
+  superseded: z.boolean(),
+  supersededBy: z.string().nullable(),
+});
+
+export const taskSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  ticked: z.boolean(),
+  kind: z.enum(TASK_KINDS),
+});
+
+export const featureSchema = z.object({
+  id: z.string(),
+  // A24: the CR:/Fix: marker and (amends F0X) are moved out of the name.
+  name: z.string(),
+  kind: z.enum(FEATURE_KINDS),
+  amends: z.string().nullable(),
+  priority: z.string(),
+  status: z.enum(FEATURE_STATUSES),
+  branch: z.string(),
+  estimateMinutes: z.number().int().nonnegative().nullable(),
+  approach: z.string(),
+  criteria: z.array(criterionSchema),
+  tasks: z.array(taskSchema),
+});
+
+export const changeLogEntrySchema = z.object({
+  time: z.string(),
+  change: z.string(),
+  source: z.string(),
+});
+
+export const featuresDocumentSchema = z.object({
+  header: headerSchema,
+  // A19: kept as raw markdown.
+  outline: z.string(),
+  assumptions: z.array(assumptionSchema),
+  decisions: z.array(decisionSchema),
+  features: z.array(featureSchema),
+  changeLog: z.array(changeLogEntrySchema),
+});
+
+export const logEventSchema = z.object({
+  time: z.string(),
+  type: z.enum(LOG_EVENT_TYPES),
+  id: z.string().nullable(),
+  text: z.string(),
+  // A25: a hex word after the last separator.
+  sha: z.string().nullable(),
+  line: z.number().int().positive(),
+});
+
+export type ParseWarning = z.infer<typeof parseWarningSchema>;
+export type LogEvent = z.infer<typeof logEventSchema>;
+export type LogEventType = (typeof LOG_EVENT_TYPES)[number];
+export type Header = z.infer<typeof headerSchema>;
+export type Assumption = z.infer<typeof assumptionSchema>;
+export type Decision = z.infer<typeof decisionSchema>;
+export type Criterion = z.infer<typeof criterionSchema>;
+export type Task = z.infer<typeof taskSchema>;
+export type FeatureStatus = (typeof FEATURE_STATUSES)[number];
+export type Feature = z.infer<typeof featureSchema>;
+export type ChangeLogEntry = z.infer<typeof changeLogEntrySchema>;
+export type FeaturesDocument = z.infer<typeof featuresDocumentSchema>;
+
+export interface ParseResult<Value> {
+  readonly value: Value;
+  readonly warnings: readonly ParseWarning[];
+}
