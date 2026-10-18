@@ -1,0 +1,14 @@
+@baseUrl = http://127.0.0.1:3001
+
+### Liveness
+GET {{baseUrl}}/health
+
+### Readiness
+GET {{baseUrl}}/health/ready
+
+### The correlation ID is echoed back
+GET {{baseUrl}}/health
+X-Correlation-ID: demo-123
+
+### An unknown route returns a 404 problem
+GET {{baseUrl}}/nope
