@@ -39,3 +39,10 @@ Content-Type: application/json
 
 ### Failure: unknown id returns 404
 DELETE {{baseUrl}}/projects/unknown-id
+
+### Failure: while projects.json is invalid, add, edit and remove return 409
+# Break the file by hand first, for example by adding a trailing comma.
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "Blocked", "featuresPath": "C:/CHANDAN S S/Claude Workspace/Claude Code/pm-tool/FEATURES.md" }

@@ -68,7 +68,7 @@ export function createProjectService(store: ProjectStore, log: FastifyBaseLogger
     },
 
     async edit(id, input) {
-      const existing = (await store.list()).find((project) => project.id === id);
+      const existing = (await store.listForChange()).find((project) => project.id === id);
       if (!existing) throw new ProjectNotFoundError(id);
       // A14: only a changed path is checked again, so a rename works while the file is missing.
       if (existing.featuresPath !== input.featuresPath) {

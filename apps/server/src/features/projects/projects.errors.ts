@@ -11,3 +11,13 @@ export class InvalidProjectFileError extends ProblemError {
     super(422, 'Invalid features file', reason);
   }
 }
+
+export class ProjectsFileUnreadableError extends ProblemError {
+  constructor() {
+    super(
+      409,
+      'Projects file needs fixing',
+      'projects.json has invalid content, so changes are refused to avoid losing it. Fix or remove the file, then retry.',
+    );
+  }
+}

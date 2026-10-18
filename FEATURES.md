@@ -51,11 +51,12 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A9 | No pagination. The project list is small, and a snapshot returns all features and events because analytics need them. | A bounded list by nature. | 19 Oct |
 | A10 | A project path may be any readable `.md` file with at least one `### F` heading. PROCESS-LOG.md is looked up in the same folder and is optional. | The spec requires the heading check, not the filename. | 19 Oct |
 | A11 | `GET /projects` returns each project with `fileStatus` of `ok` or `missing`. | The web shows "file not found" without an error page. | 19 Oct |
-| A12 | A corrupt `projects.json` is logged and read as an empty list. It is left untouched until the next successful write replaces it. | Never destroy a hand-edited file on a read. | 19 Oct |
+| ~~A12~~ | ~~A corrupt `projects.json` is logged and read as an empty list. It is left untouched until the next successful write replaces it. | Never destroy a hand-edited file on a read.~~ Superseded by A17. | 19 Oct |
 | A13 | Two projects may share the same `featuresPath`. | Nothing in the brief forbids it. | 19 Oct |
 | A14 | Editing a project checks the features file again only when the path changed. | A rename must work while the file is missing. | 19 Oct |
 | A15 | The selected project id is remembered in the browser's localStorage. If it is unavailable or the project is gone, nothing is selected. | A reload should keep the user's project. | 19 Oct |
 | A16 | Removing a project asks for confirmation on the row first. | It is an easy click to make by mistake. | 19 Oct |
+| A17 | A projects.json that is not valid JSON, is not an array, or has any invalid entry is never overwritten. Reads list the valid entries and log the rest. Add, edit and remove return 409 until the file is fixed by hand. A leading byte order mark is ignored. | A hand-edited file must not be lost. Supersedes A12. | 19 Oct |
 
 ## Decisions
 
@@ -109,7 +110,7 @@ Acceptance criteria:
 Tasks:
 - [x] F01.1 Projects store, service and routes with tests and `.http` file
 - [x] F01.2 Web projects list, form and switcher
-- [ ] F01.3 fix: stop a hand-edited projects.json being overwritten (strip BOM, keep valid entries, refuse to write over an unparseable file)
+- [x] F01.3 fix: stop a hand-edited projects.json being overwritten (strip BOM, keep valid entries, refuse to write over an unparseable file)
 - [ ] F01.4 fix: require an absolute .md path (A10), name the cause in the 422, test the unreadable case
 - [ ] F01.5 fix: close the edit form when its project is removed, clear a selection that vanishes after a refetch, clear a stale add error
 - [ ] F01.6 fix: log a corrupt projects.json once, remove the temp file when a write fails and test the 500, report a folder as missing

@@ -13,6 +13,8 @@ interface ProjectBody {
   readonly fileStatus?: string;
 }
 
+const BYTE_ORDER_MARK = String.fromCodePoint(0xfeff);
+
 let workFolder: string;
 let projectsFile: string;
 let featuresPath: string;
@@ -195,11 +197,50 @@ describe('the projects file', () => {
     expect(await readFile(projectsFile, 'utf8')).toBe('{ not json');
   });
 
-  it('replaces a corrupt file on the next successful add', async () => {
+  it('loads a file that starts with a byte order mark', async () => {
+    const entry = { id: 'bom', name: 'Windows editor', featuresPath };
+    await writeFile(projectsFile, `${BYTE_ORDER_MARK}${JSON.stringify([entry])}`);
+    expect(await listProjects(await startApp())).toEqual([{ ...entry, fileStatus: 'ok' }]);
+  });
+
+  it('lists the valid entries and warns about an invalid one', async () => {
+    const good = { id: 'good', name: 'Good', featuresPath };
+    await writeFile(projectsFile, JSON.stringify([good, { name: 'No id', featuresPath }]));
+    const logs = captureLogs();
+    const app = await startApp({ logDestination: logs.stream }, true);
+
+    expect(await listProjects(app)).toEqual([{ ...good, fileStatus: 'ok' }]);
+    const warning = logs.entries().find((entry) => entry.msg === 'skipping invalid project');
+    expect(warning).toMatchObject({ level: PINO_LEVEL.warn, index: 1 });
+  });
+
+  it.each([
+    ['a trailing comma', '[{ "id": "a", "name": "A", "featuresPath": "x" },]'],
+    ['an object instead of a list', '{ "projects": [] }'],
+    ['an entry with no id', '[{ "name": "No id", "featuresPath": "x" }]'],
+  ])('refuses to change a file with %s and leaves it untouched', async (_label, content) => {
+    await writeFile(projectsFile, content);
+    const app = await startApp();
+    const payload = { name: 'Fresh', featuresPath };
+
+    const responses = await Promise.all([
+      app.inject({ method: 'POST', url: '/projects', payload }),
+      app.inject({ method: 'PUT', url: '/projects/a', payload }),
+      app.inject({ method: 'DELETE', url: '/projects/a' }),
+    ]);
+
+    expect(responses.map((response) => response.statusCode)).toEqual([409, 409, 409]);
+    expect(responses[0].headers['content-type']).toContain('application/problem+json');
+    expect(await readFile(projectsFile, 'utf8')).toBe(content);
+  });
+
+  it('accepts changes again once the file is fixed by hand', async () => {
     await writeFile(projectsFile, '{ not json');
     const app = await startApp();
+    expect((await addProject(app, 'Blocked', featuresPath)).statusCode).toBe(409);
+
+    await writeFile(projectsFile, '[]');
     expect((await addProject(app, 'Fresh', featuresPath)).statusCode).toBe(201);
-    expect(await listProjects(app)).toHaveLength(1);
   });
 
   it('marks a project whose features file is gone as missing instead of failing', async () => {

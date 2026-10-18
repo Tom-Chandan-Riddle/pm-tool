@@ -79,6 +79,8 @@ Expected depth:
 02:15 · ASSUME · A15–A16 · Selected project remembered in localStorage, and removal asks for confirmation on the row.
 02:15 · TASK · F01.2 · Web projects list, add/edit form, remove with confirmation and a switcher, with loading, empty, error and file-not-found states. 16 new web tests against a stubbed fetch, 20 web tests in total. Types are plain interfaces in the web feature until F02 settles the shared package build order.
 02:18 · REVIEW · F01 · Two agents: 0 Must fix, 5 Should fix, 8 Notes after merging. All accepted as F01.3 to F01.6: hand-edited file protection, path rules and 422 reasons, web stale state, logging and cleanup. Rejected: duplicate-path check (A13 allows it), double-submit test (button is disabled while pending), size cap, abort signal and a version column, as not worth it for one local user.
+02:21 · ASSUME · A17 · A projects.json the server cannot fully read is never overwritten: add, edit and remove return 409 until it is fixed by hand. Supersedes A12.
+02:21 · TASK · F01.3 · BOM ignored, entries validated one by one with bad ones logged at warn, and writes refused with 409 over an unreadable file. 5 new server tests, 61 in total. The tests caught PUT returning 404 instead of 409 on a corrupt file, fixed with a strict read for edits.
 
 ## Summary
 
