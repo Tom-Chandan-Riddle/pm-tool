@@ -86,6 +86,8 @@ Expected depth:
 02:30 · TASK · F01.5 · The edit form now follows the project id and closes when its project disappears, and starting an edit clears an old add error. 4 new web tests, 24 in total. The stale selection case already behaved correctly from F01.2, so its test only pins it. The stored id is left in localStorage by choice.
 02:33 · TASK · F01.6 · A bad projects.json is logged once per distinct content, a failed write removes its temp file, and a path that became a folder lists as missing. 8 new server tests, 75 passing and 1 skipped. The cleanup test fails when the cleanup is removed. Only rename is mocked, since a late rename failure cannot be provoked on a real disk.
 02:34 · SHIP · F01 · Merged to main with a merge commit. 100 tests passing and 1 skipped on Windows (75 server, 24 web, 1 skipped permission test), verify green. Actual time about 45 min against a 35 min estimate, with the overrun in review fixes F01.3 to F01.6.
+02:48 · ASSUME · A19–A21 · Outline kept as raw markdown, snapshot types live in packages/shared, and a parse warning is {section, line, message} with a 1-based line.
+02:48 · TASK · F02.1 · Snapshot schemas and parseFeaturesFile for header, outline, assumptions, decisions, features and change log, with warnings instead of exceptions. 21 new shared tests, including a hand-counted real sample. A missing section warns, and only the first table of a section is read cleanly.
 
 ## Summary
 

@@ -58,6 +58,9 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A16 | Removing a project asks for confirmation on the row first. | It is an easy click to make by mistake. | 19 Oct |
 | A17 | A projects.json that is not valid JSON, is not an array, or has any invalid entry is never overwritten. Reads list the valid entries and log the rest. Add, edit and remove return 409 until the file is fixed by hand. A leading byte order mark is ignored. | A hand-edited file must not be lost. Supersedes A12. | 19 Oct |
 | A18 | A project path must be absolute and end in `.md` (any case), at most 1024 characters. A name is at most 200. Breaking a rule returns 400 with a field error. A path that cannot be read returns 422 naming the cause: missing, no permission, or a folder. Tightens A10. | Stops arbitrary files being probed and avoids paths that depend on where the server started. | 19 Oct |
+| A19 | The solution outline is kept as one raw markdown string in the snapshot. | The board only shows it as text. | 19 Oct |
+| A20 | Snapshot types and schemas live in `packages/shared` and are exported from its `index.ts`. | Server and web both need them. | 19 Oct |
+| A21 | A parse warning is `{section, line, message}` with a 1-based line number in the source file. | The user can find the bad line. | 19 Oct |
 
 ## Decisions
 
@@ -117,9 +120,9 @@ Tasks:
 - [x] F01.6 fix: log a corrupt projects.json once, remove the temp file when a write fails and test the 500, report a folder as missing
 
 ### F02 Parser
-Priority: Must · Status: Todo · Branch: feature/F02-parser · Estimate: 40 min
+Priority: Must · Status: In Progress · Branch: feature/F02-parser · Estimate: 40 min
 
-Approach: pure functions in `packages/shared/src/parser`, one per section, each returning `{value, warnings}`. Fixtures are this repo's FEATURES.md and PROCESS-LOG.md plus malformed copies. Metadata rules from A3 and A4.
+Approach: pure functions in `packages/shared/src/parser`, no I/O and no framework imports, one file per concern: `snapshot.ts` (zod schemas and `z.infer` types for `ProjectSnapshot`, `Feature`, `Criterion`, `Task`, `LogEvent`, `ParseWarning`), `features.parser.ts` (splits FEATURES.md into sections by `##` and `###` headings, then header, outline, assumptions, decisions, features and change log), `log.parser.ts` (F02.3). Each section parser returns `{ value, warnings }`, and a thin `parseFeaturesFile(text)` merges them, so a malformed section costs only itself. Metadata follows A3 and A4. The package keeps building to `dist`, so the server and web import the parser from `@pm-tool/shared` once it is exported from `index.ts`. Tests sit next to the package, run against this repo's own FEATURES.md and PROCESS-LOG.md copied into `test/fixtures`, plus malformed variants. Risk: the format is only defined by the template, so the parser reads headings and line shapes loosely and warns instead of throwing.
 
 Acceptance criteria:
 - [ ] Header, outline, assumptions, decisions, features and change log are parsed from a real sample file
@@ -132,7 +135,7 @@ Acceptance criteria:
 - [ ] An empty file returns an empty snapshot with a warning, not an exception
 
 Tasks:
-- [ ] F02.1 Snapshot types and FEATURES.md parser for the core sections
+- [x] F02.1 Snapshot types and FEATURES.md parser for the core sections
 - [ ] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
 - [ ] F02.3 PROCESS-LOG.md event parser
 
