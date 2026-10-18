@@ -70,17 +70,17 @@ Priority: Must · Status: In Progress · Branch: feature/F00-foundation · Estim
 Approach: only what the features use. Workspaces, strict TypeScript, ESLint and Prettier, Vitest. Server: `app.ts`, `server.ts`, zod config, pino with redaction, correlation ID, error handler, process fatal handlers, graceful shutdown, health, Scalar in development. Web: Vite React, TanStack Query, root error boundary. `npm run dev` starts both.
 
 Acceptance criteria:
-- [ ] `npm run verify` passes with no warnings
-- [ ] `GET /health` returns 200 and `GET /health/ready` returns 200 (inject test)
-- [ ] An unhandled error returns 500 problem+json with the correlation ID and no stack trace
-- [ ] Every response carries `X-Correlation-ID`, taken from the request header when given, and logs include it
-- [ ] Invalid environment config stops startup before listening
-- [ ] Scalar UI is served in development only
-- [ ] The web app renders and a root error boundary shows a fallback when a child throws
+- [x] `npm run verify` passes with no warnings
+- [x] `GET /health` returns 200 and `GET /health/ready` returns 200 (inject test)
+- [x] An unhandled error returns 500 problem+json with the correlation ID and no stack trace
+- [x] Every response carries `X-Correlation-ID`, taken from the request header when given, and logs include it
+- [x] Invalid environment config stops startup before listening
+- [x] Scalar UI is served in development only
+- [x] The web app renders and a root error boundary shows a fallback when a child throws
 
 Tasks:
 - [x] F00.1 Root scaffold and server foundation with /health test
-- [ ] F00.2 Web scaffold, error boundary, render test, `npm run dev`
+- [x] F00.2 Web scaffold, error boundary, render test, `npm run dev`
 
 ### F01 Projects
 Priority: Must · Status: Todo · Branch: feature/F01-projects · Estimate: 35 min

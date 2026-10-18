@@ -10,6 +10,7 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w @pm-tool/server\" \"npm run dev -w @pm-tool/web\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
@@ -21,7 +22,9 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.19.2",
+    "concurrently": "^10.0.6",
     "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.2",

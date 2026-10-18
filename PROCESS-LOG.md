@@ -67,6 +67,7 @@ Expected depth:
 00:21 · PLAN · F00–F05 · Six features, 200 minutes of Must work against 6 hours available. F02 comes before F03 because the watcher publishes parsed snapshots.
 00:50 · DECISION · D7 · TypeScript 6.0.3 instead of 7. npm resolved it as the version typescript-eslint supports; fallback was pre-approved at F00.1.
 00:50 · TASK · F00.1 · Workspaces, strict config, Fastify app with correlation ID, problem+json errors, zod config, health routes and Scalar in development. 14 tests, verify green.
+01:05 · TASK · F00.2 · Vite React app with TanStack Query, root error boundary, proxy to the server, and a concurrently dev script. 4 web tests, 18 in total, verify green.
 
 ## Summary
 
