@@ -54,6 +54,8 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A12 | A corrupt `projects.json` is logged and read as an empty list. It is left untouched until the next successful write replaces it. | Never destroy a hand-edited file on a read. | 19 Oct |
 | A13 | Two projects may share the same `featuresPath`. | Nothing in the brief forbids it. | 19 Oct |
 | A14 | Editing a project checks the features file again only when the path changed. | A rename must work while the file is missing. | 19 Oct |
+| A15 | The selected project id is remembered in the browser's localStorage. If it is unavailable or the project is gone, nothing is selected. | A reload should keep the user's project. | 19 Oct |
+| A16 | Removing a project asks for confirmation on the row first. | It is an easy click to make by mistake. | 19 Oct |
 
 ## Decisions
 
@@ -96,17 +98,17 @@ Priority: Must · Status: In Progress · Branch: feature/F01-projects · Estimat
 Approach: `apps/server/src/features/projects` is one Fastify plugin: `projects.store.ts` (reads and writes `projects.json` at an injected path), `projects.service.ts` (add, edit, remove, list, validates the features file), `projects.routes.ts` and `projects.http`. A new `PROJECTS_FILE` env var sets the store path. `Project` and its zod schemas go in `packages/shared` because the web uses them too. Failures are `ProblemError` subclasses: `ProjectNotFoundError` 404, `InvalidProjectFileError` 422 (A1, A2, A10). The web feature (`features/projects`) has a list, add/edit form and switcher on TanStack Query. Tested with `app.inject()` against real temp folders and a real `projects.json`.
 
 Acceptance criteria:
-- [ ] Adding a project with a valid features path returns 201 and the project survives a server restart
-- [ ] Adding a path that doesn't exist, is unreadable, or has no `### F` heading returns 422 with a clear message
-- [ ] Adding with an empty name or empty path returns 400 with field errors
-- [ ] Editing and removing a project works; an unknown id returns 404
-- [ ] A project whose file is later missing shows a "file not found" state, not an error page
-- [ ] A hand-edited or empty `projects.json` loads; a corrupt one fails with a clear log message and an empty list
-- [ ] The web app lists, adds, edits, removes and switches projects, with loading, empty and error states
+- [x] Adding a project with a valid features path returns 201 and the project survives a server restart
+- [x] Adding a path that doesn't exist, is unreadable, or has no `### F` heading returns 422 with a clear message
+- [x] Adding with an empty name or empty path returns 400 with field errors
+- [x] Editing and removing a project works; an unknown id returns 404
+- [x] A project whose file is later missing shows a "file not found" state, not an error page
+- [x] A hand-edited or empty `projects.json` loads; a corrupt one fails with a clear log message and an empty list
+- [x] The web app lists, adds, edits, removes and switches projects, with loading, empty and error states
 
 Tasks:
 - [x] F01.1 Projects store, service and routes with tests and `.http` file
-- [ ] F01.2 Web projects list, form and switcher
+- [x] F01.2 Web projects list, form and switcher
 
 ### F02 Parser
 Priority: Must · Status: Todo · Branch: feature/F02-parser · Estimate: 40 min

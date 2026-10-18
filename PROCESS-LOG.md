@@ -76,6 +76,8 @@ Expected depth:
 02:00 · SHIP · F00 · Merged to main with a merge commit. 40 tests passing (36 server, 4 web), verify green. Actual time about 1 h 40 min against a 25 min estimate, mostly review fixes F00.3 to F00.6.
 02:07 · ASSUME · A11–A14 · File status on the project list, corrupt projects.json left untouched until the next write, duplicate paths allowed, path re-checked on edit only when it changed.
 02:07 · TASK · F01.1 · Projects store, service and routes with problem+json errors, PROJECTS_FILE config and a .http file. 20 new tests, 56 server tests in total. Schemas stay in the server for now because packages/shared resolves through dist, which typecheck runs before. A relative featuresPath is stored as typed.
+02:15 · ASSUME · A15–A16 · Selected project remembered in localStorage, and removal asks for confirmation on the row.
+02:15 · TASK · F01.2 · Web projects list, add/edit form, remove with confirmation and a switcher, with loading, empty, error and file-not-found states. 16 new web tests against a stubbed fetch, 20 web tests in total. Types are plain interfaces in the web feature until F02 settles the shared package build order.
 
 ## Summary
 
