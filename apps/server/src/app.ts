@@ -40,22 +40,29 @@ export interface BuildAppOptions {
   readonly logDestination?: DestinationStream;
 }
 
-function buildLoggerOptions(config: Config, logDestination: DestinationStream | undefined) {
-  return {
-    level: config.LOG_LEVEL,
-    redact: REDACTED_PATHS,
-    ...(logDestination && { stream: logDestination }),
-    ...(!logDestination &&
-      config.NODE_ENV === 'development' && { transport: { target: 'pino-pretty' } }),
-  };
+// Pretty logs write synchronously in-process. A worker-thread transport could lose the
+// last fatal line when the process exits straight after logging it.
+async function resolveLogDestination(
+  config: Config,
+  explicitDestination: DestinationStream | undefined,
+): Promise<DestinationStream | undefined> {
+  if (explicitDestination) return explicitDestination;
+  if (config.NODE_ENV !== 'development') return undefined;
+  const { default: pretty } = await import('pino-pretty');
+  return pretty({ sync: true });
 }
 
 export async function buildApp(
   config: Config,
   options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
+  const logDestination = await resolveLogDestination(config, options.logDestination);
   const app = Fastify({
-    logger: buildLoggerOptions(config, options.logDestination),
+    logger: {
+      level: config.LOG_LEVEL,
+      redact: REDACTED_PATHS,
+      ...(logDestination && { stream: logDestination }),
+    },
     requestIdHeader: false,
     genReqId: (request) => correlationIdFrom(request.headers[CORRELATION_ID_HEADER]),
   });
