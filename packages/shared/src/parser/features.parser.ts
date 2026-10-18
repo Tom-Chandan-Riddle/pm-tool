@@ -2,6 +2,7 @@ import {
   readSourceLines,
   readTableRows,
   splitByHeading,
+  unclosedFenceWarnings,
   type HeadingSection,
   type SourceLine,
   type TableRow,
@@ -59,7 +60,8 @@ export function parseFeaturesFile(text: string): ParseResult<FeaturesDocument> {
     return { value: emptyDocument, warnings: [warn('file', 1, 'The file is empty')] };
   }
 
-  const { preamble, sections } = splitByHeading(readSourceLines(text), 2);
+  const { lines, unclosedFenceLine } = readSourceLines(text);
+  const { preamble, sections } = splitByHeading(lines, 2);
   const header = parseHeader(preamble);
   const outline = parseSection(sections, 'outline', parseOutline, '');
   const assumptions = parseSection(sections, 'assumptions', parseAssumptions, []);
@@ -76,9 +78,12 @@ export function parseFeaturesFile(text: string): ParseResult<FeaturesDocument> {
       features: features.value,
       changeLog: changeLog.value,
     },
-    warnings: [header, outline, assumptions, decisions, features, changeLog].flatMap(
-      (result) => result.warnings,
-    ),
+    warnings: [
+      ...unclosedFenceWarnings('file', unclosedFenceLine),
+      ...[header, outline, assumptions, decisions, features, changeLog].flatMap(
+        (result) => result.warnings,
+      ),
+    ],
   };
 }
 
@@ -286,6 +291,11 @@ function readFeatureBody(body: readonly SourceLine[], warnings: ParseWarning[]):
   let mode: BodyMode = 'prose';
 
   for (const line of body) {
+    // A28: fenced lines are kept as approach text and otherwise ignored.
+    if (line.inFence) {
+      if (mode === 'approach') approachLines.push(line.text);
+      continue;
+    }
     const text = line.text.trim();
     if (text.startsWith('Priority:')) {
       parts.metadata = { fields: readLabelledParts(text), line: line.number };

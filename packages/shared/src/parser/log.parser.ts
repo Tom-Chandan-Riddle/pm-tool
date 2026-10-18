@@ -1,4 +1,9 @@
-import { readSourceLines, splitByHeading, type SourceLine } from './markdown.js';
+import {
+  readSourceLines,
+  splitByHeading,
+  unclosedFenceWarnings,
+  type SourceLine,
+} from './markdown.js';
 import { LOG_EVENT_TYPES, type LogEvent, type ParseResult, type ParseWarning } from './snapshot.js';
 
 const LOG_SECTION_TITLE = 'log';
@@ -12,15 +17,18 @@ export function parseProcessLog(text: string): ParseResult<LogEvent[]> {
   if (text.trim() === '') {
     return { value: [], warnings: [warn(1, 'The file is empty')] };
   }
-  const { sections } = splitByHeading(readSourceLines(text), 2);
+  const { lines, unclosedFenceLine } = readSourceLines(text);
+  const warnings: ParseWarning[] = unclosedFenceWarnings('log', unclosedFenceLine);
+  const { sections } = splitByHeading(lines, 2);
   const logSection = sections.find((section) => section.title.toLowerCase() === LOG_SECTION_TITLE);
   if (!logSection) {
-    return { value: [], warnings: [warn(1, 'Section "log" not found')] };
+    return { value: [], warnings: [...warnings, warn(1, 'Section "log" not found')] };
   }
 
   const events: LogEvent[] = [];
-  const warnings: ParseWarning[] = [];
-  for (const line of withoutComments(logSection.body)) {
+  // A28: fenced lines are examples, not entries.
+  const unfencedBody = logSection.body.filter((line) => !line.inFence);
+  for (const line of withoutComments(unfencedBody)) {
     if (line.text.trim() === '') continue;
     const entry = parseEntry(line);
     if (typeof entry === 'string') warnings.push(warn(line.number, entry));

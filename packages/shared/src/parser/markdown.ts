@@ -1,3 +1,5 @@
+import type { ParseWarning } from './snapshot.js';
+
 export interface SourceLine {
   readonly text: string;
   readonly number: number;
@@ -16,19 +18,55 @@ export interface TableRow {
 }
 
 const BYTE_ORDER_MARK = new RegExp(`^${String.fromCharCode(0xfeff)}`);
-const FENCE_MARKER = /^\s*(```|~~~)/;
+const FENCE_LINE = /^\s*(`{3,}|~{3,})(.*)$/;
+const LINE_BREAK = /\r?\n/;
 const TABLE_SEPARATOR_CELL = /^:?-+:?$/;
 
-export function readSourceLines(text: string): SourceLine[] {
-  let inFence = false;
-  return text
-    .replace(BYTE_ORDER_MARK, '')
-    .split(/\r?\n/)
-    .map((lineText, index) => {
-      const isFenceMarker = FENCE_MARKER.test(lineText);
-      if (isFenceMarker) inFence = !inFence;
-      return { text: lineText, number: index + 1, inFence: inFence || isFenceMarker };
-    });
+interface OpenFence {
+  readonly marker: string;
+  readonly line: number;
+}
+
+// A27: CommonMark fences. The closer repeats the opener's character, at least as long, with nothing after it.
+export function readSourceLines(text: string): {
+  lines: SourceLine[];
+  unclosedFenceLine: number | null;
+} {
+  const lines: SourceLine[] = [];
+  let openFence: OpenFence | undefined;
+  const lineTexts = text.replace(BYTE_ORDER_MARK, '').split(LINE_BREAK);
+  for (const [index, lineText] of lineTexts.entries()) {
+    const number = index + 1;
+    const fence = FENCE_LINE.exec(lineText);
+    const marker = fence?.[1];
+    const info = fence?.[2] ?? '';
+    let inFence = openFence !== undefined;
+    if (marker !== undefined && openFence === undefined && opensFence(marker, info)) {
+      openFence = { marker, line: number };
+      inFence = true;
+    } else if (
+      marker !== undefined &&
+      openFence !== undefined &&
+      closesFence(openFence.marker, marker, info)
+    ) {
+      openFence = undefined;
+    }
+    lines.push({ text: lineText, number, inFence });
+  }
+  return { lines, unclosedFenceLine: openFence?.line ?? null };
+}
+
+export function unclosedFenceWarnings(section: string, line: number | null): ParseWarning[] {
+  return line === null ? [] : [{ section, line, message: 'Code fence is never closed' }];
+}
+
+function opensFence(marker: string, info: string): boolean {
+  return marker.startsWith('~') || !info.includes('`');
+}
+
+function closesFence(openingMarker: string, marker: string, trailingText: string): boolean {
+  const isSameKind = marker.startsWith(openingMarker.charAt(0));
+  return isSameKind && marker.length >= openingMarker.length && trailingText.trim() === '';
 }
 
 export function splitByHeading(

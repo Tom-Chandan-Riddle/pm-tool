@@ -419,3 +419,79 @@ describe('parseFeaturesFile on change requests, fixes and superseded criteria', 
     ]);
   });
 });
+
+describe('parseFeaturesFile on fenced code', () => {
+  it('does not let a fenced Tasks label, checkbox or Priority line change a feature', () => {
+    const text = [
+      '## Features',
+      `### F01 Sample\n${META}`,
+      'Approach: show a sample.',
+      '```',
+      'Tasks:',
+      '- [ ] F09.1 not a task',
+      'Priority: Wrong · Status: Done',
+      '```',
+      'Tasks:',
+      '- [ ] F01.1 Real task',
+    ].join('\n');
+
+    const result = parseFeaturesFile(text);
+    const feature = result.value.features[0];
+
+    expect(feature?.tasks.map((task) => task.id)).toEqual(['F01.1']);
+    expect(feature).toMatchObject({ priority: 'Must', status: 'Todo' });
+    expect(warningsIn(result, 'features')).toEqual([]);
+  });
+
+  it('ignores a fenced checkbox under the criteria', () => {
+    const text = [
+      `## Features\n### F01 Sample\n${META}\nAcceptance criteria:`,
+      '- [x] Real criterion',
+      '```',
+      '- [ ] in a code sample',
+      '```',
+    ].join('\n');
+
+    const criteria = parseFeaturesFile(text).value.features[0]?.criteria ?? [];
+
+    expect(criteria.map((criterion) => criterion.text)).toEqual(['Real criterion']);
+  });
+
+  it('keeps fenced lines as part of the approach text (A28)', () => {
+    const text = [
+      `## Features\n### F01 Sample\n${META}`,
+      'Approach: shape of the call:',
+      '```',
+      'Tasks: not a label here',
+      '```',
+    ].join('\n');
+
+    const approach = parseFeaturesFile(text).value.features[0]?.approach;
+
+    expect(approach).toBe('shape of the call:\n```\nTasks: not a label here\n```');
+  });
+
+  it('ignores a feature heading inside a four-backtick fence that holds a three-backtick line', () => {
+    const text = [
+      '## Features',
+      '````',
+      '```',
+      '### F99 Not real',
+      '````',
+      `### F01 Real\n${META}`,
+    ].join('\n');
+
+    expect(parseFeaturesFile(text).value.features.map((feature) => feature.id)).toEqual(['F01']);
+  });
+
+  it('warns at the opening line of a fence that is never closed', () => {
+    const text = [`## Features\n### F01 Real\n${META}`, '```', '### F02 Hidden'].join('\n');
+
+    const result = parseFeaturesFile(text);
+
+    expect(result.value.features.map((feature) => feature.id)).toEqual(['F01']);
+    expect(warningsIn(result, 'file')).toEqual([
+      { section: 'file', line: 4, message: 'Code fence is never closed' },
+    ]);
+  });
+});

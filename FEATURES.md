@@ -66,6 +66,8 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A24 | A feature heading `F0X CR: name (amends F0Y)` or `F0X Fix: name (amends F0Y)` sets kind and amends, and the name has the marker and amends removed. Without amends it warns and amends is empty. Task kind comes from a `fix:` prefix or a `(CR)` suffix, and the task text is kept as written. | Keeps the board free to render its own badge. | 19 Oct |
 | A25 | A log entry's optional SHA is a 7 to 40 character hex word after the last ` · ` separator, and is removed from the text. A log entry's ID of `—`, `–` or `-` is read as none. | The log template only says to add the short SHA where there is one. | 19 Oct |
 | A26 | Only lines under the `## Log` heading are log entries. A non-blank line there that is not an entry gets a warning, and `<!-- -->` blocks are skipped. | The setup tables, template and summary must never produce events. | 19 Oct |
+| A27 | A code fence opens with three or more backticks or tildes and closes only on the same character, at least as many of them, with nothing after. An unclosed fence hides the rest of the file and gets a warning at its opening line. | The CommonMark rule, so a sample that shows a fence is not cut short. | 19 Oct |
+| A28 | Fenced lines never switch mode or create items in a feature body or the log. In an Approach they are kept as text. In the log they are ignored with no warning. | Code samples are documentation, not entries. | 19 Oct |
 
 ## Decisions
 
@@ -143,7 +145,7 @@ Tasks:
 - [x] F02.1 Snapshot types and FEATURES.md parser for the core sections
 - [x] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
 - [x] F02.3 PROCESS-LOG.md event parser
-- [ ] F02.4 fix: skip fenced lines in feature bodies and the log, and match fence marker type and length
+- [x] F02.4 fix: skip fenced lines in feature bodies and the log, and match fence marker type and length
 - [ ] F02.5 fix: keep log entries with a trailing comment, warn on an unclosed comment, trim fields around the separator
 - [ ] F02.6 fix: warn when a table has no separator row, support escaped pipes, read only the first table
 - [ ] F02.7 fix: first Priority line wins with a duplicate warning, and the approach runs to the next label across blank lines

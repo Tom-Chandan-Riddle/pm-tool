@@ -93,6 +93,8 @@ Expected depth:
 03:04 · ASSUME · A25–A26 · A log SHA is a hex word after the last separator and a dash ID means none. Only lines under the Log heading are entries, and commented blocks are skipped.
 03:04 · TASK · F02.3 · parseProcessLog turns entries into typed events with time, type, id, text, sha and line, and warns on bad times, unknown types and stray lines. 24 new shared tests, 54 in total, with the type counts checked against a copy of this log.
 03:16 · REVIEW · F02 · Two agents: 0 Must fix, 6 Should fix, 6 Notes. All six Should fix accepted as F02.4 to F02.7: fenced lines, log comments and spacing, table robustness, feature body metadata and approach. Notes left as they are, since they are rare or already give a visible warning: fence marker length, duplicate sections, criteria label variants, amends with trailing text, nested bullets and the ProjectSnapshot wording in the Approach. About a dozen strictness items were dropped as speculative.
+03:24 · ASSUME · A27–A28 · Fences follow the CommonMark rule and an unclosed one warns at its opening line. Fenced lines never create items, are kept in an Approach, and are ignored in the log.
+03:24 · TASK · F02.4 · readSourceLines matches fence marker type and length and reports an unclosed fence, and feature bodies and the log skip fenced lines. 17 new shared tests, 71 in total. Removing the feature-body skip made two tests fail, so they do catch it.
 
 ## Summary
 

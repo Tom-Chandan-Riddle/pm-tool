@@ -199,3 +199,41 @@ describe('parseProcessLog on a real PROCESS-LOG.md', () => {
     expect(windows).toEqual(plain);
   });
 });
+
+describe('parseProcessLog on fenced code', () => {
+  it('makes no events and no warnings from a fenced block in the Log section', () => {
+    const result = parseProcessLog(
+      logFile(
+        '09:00 · START · — · Begin',
+        '```',
+        '09:10 · TASK · F01 · inside a code sample',
+        'not an entry either',
+        '```',
+        '09:20 · TASK · F01.1 · After',
+      ),
+    );
+
+    expect(result.warnings).toEqual([]);
+    expect(result.value.map((event) => event.text)).toEqual(['Begin', 'After']);
+  });
+
+  it('does not close a fence early on a shorter fence line', () => {
+    const result = parseProcessLog(
+      logFile('````', '```', '09:10 · TASK · F01 · inside', '````', '09:20 · TASK · F01.1 · After'),
+    );
+
+    expect(result.warnings).toEqual([]);
+    expect(result.value.map((event) => event.text)).toEqual(['After']);
+  });
+
+  it('warns at the opening line of a fence that is never closed and keeps earlier entries', () => {
+    const result = parseProcessLog(
+      logFile('09:00 · START · — · Begin', '```', '09:10 · TASK · F01 · swallowed'),
+    );
+
+    expect(result.value.map((event) => event.text)).toEqual(['Begin']);
+    expect(result.warnings).toEqual([
+      { section: 'log', line: 5, message: 'Code fence is never closed' },
+    ]);
+  });
+});
