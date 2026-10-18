@@ -10,6 +10,7 @@ import {
 } from 'fastify-type-provider-zod';
 import { healthRoutes } from './features/health/health.routes.js';
 import { projectsRoutes } from './features/projects/projects.routes.js';
+import { watchRoutes } from './features/watch/watch.routes.js';
 import type { Config } from './shared/config.js';
 import { registerErrorHandler } from './shared/errors.js';
 
@@ -86,5 +87,6 @@ export async function buildApp(
 
   await app.register(healthRoutes);
   await app.register(projectsRoutes, { prefix: '/projects', projectsFile: config.PROJECTS_FILE });
+  await app.register(watchRoutes, { prefix: '/projects', projectsFile: config.PROJECTS_FILE });
   return app;
 }

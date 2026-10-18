@@ -47,17 +47,23 @@ const SECTION_TITLES = {
   changeLog: 'change log',
 } as const;
 
+export function createEmptyFeaturesDocument(): FeaturesDocument {
+  return {
+    header: { baseCommit: '', repoState: '', model: '' },
+    outline: '',
+    assumptions: [],
+    decisions: [],
+    features: [],
+    changeLog: [],
+  };
+}
+
 export function parseFeaturesFile(text: string): ParseResult<FeaturesDocument> {
   if (text.trim() === '') {
-    const emptyDocument: FeaturesDocument = {
-      header: { baseCommit: '', repoState: '', model: '' },
-      outline: '',
-      assumptions: [],
-      decisions: [],
-      features: [],
-      changeLog: [],
+    return {
+      value: createEmptyFeaturesDocument(),
+      warnings: [warn('file', 1, 'The file is empty')],
     };
-    return { value: emptyDocument, warnings: [warn('file', 1, 'The file is empty')] };
   }
 
   const { lines, unclosedFenceLine } = readSourceLines(text);

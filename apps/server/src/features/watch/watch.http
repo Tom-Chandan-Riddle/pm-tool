@@ -1,0 +1,17 @@
+@baseUrl = http://127.0.0.1:3001
+
+### Add a project to read (change the path to a real FEATURES.md)
+# @name addProject
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{
+  "name": "PM Tool",
+  "featuresPath": "C:/CHANDAN S S/Claude Workspace/Claude Code/pm-tool/FEATURES.md"
+}
+
+### Snapshot of the project just added
+GET {{baseUrl}}/projects/{{addProject.response.body.id}}/snapshot
+
+### Snapshot of a project that does not exist (404 problem+json)
+GET {{baseUrl}}/projects/does-not-exist/snapshot

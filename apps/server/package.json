@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fastify/swagger": "^9.9.2",
+    "@pm-tool/shared": "*",
     "@scalar/fastify-api-reference": "^1.75.0",
     "chokidar": "^4.0.3",
     "fastify": "^5.12.7",

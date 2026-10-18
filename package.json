@@ -10,12 +10,13 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w @pm-tool/server\" \"npm run dev -w @pm-tool/web\"",
+    "build:shared": "npm run build -w @pm-tool/shared",
+    "dev": "npm run build:shared && concurrently -n server,web -c blue,green \"npm run dev -w @pm-tool/server\" \"npm run dev -w @pm-tool/web\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --max-warnings 0",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run build:shared && eslint . --max-warnings 0",
+    "typecheck": "npm run build:shared && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:shared && npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
   },

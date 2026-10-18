@@ -104,6 +104,9 @@ Expected depth:
 03:54 · SHIP · F02 · Merged to main with a merge commit. 194 tests passing and 1 skipped on Windows (95 shared, 75 server, 24 web, 1 skipped permission test), verify green. Actual time about 60 min against a 40 min estimate, with the overrun in review fixes F02.4 to F02.7.
 04:09 · ASSUME · A35–A37 · Watching a missing folder fails with a clear error. A file that keeps changing for over 5 seconds is skipped with a warning. A missing features file is emitted as null and a missing log is never an error.
 04:09 · TASK · F03.1 · chokidar watcher on the project folder with debounce, stable-size wait, recreate handling and an idempotent close, plus readProjectFiles. 25 new server tests, 100 in total, run five more times without a failure. The stable-wait timeout is tested on its pure function, since real file events always supersede it.
+04:16 · PLAN · F03.2–F03.4 · F03.2 split in three: snapshot type with keep-last-good and the GET route, the SSE route with watcher lifetime, then the web hook. One task would have been well over 20 minutes.
+04:35 · ASSUME · A38 · A file that exists but yields nothing keeps the previous features or events with a warning, a deleted features file is missing with empty features, and a missing log is missing with no error.
+04:35 · TASK · F03.2 · ProjectSnapshot type, pure buildSnapshot with keep-last-good, snapshot service and GET /projects/:id/snapshot. Root scripts now build the shared package first, checked from a clean dist. 13 new shared tests and 9 new server tests, 108 shared and 109 server in total. Prettier reformatted the fixture tables when run on packages, so they were restored from git.
 
 ## Summary
 

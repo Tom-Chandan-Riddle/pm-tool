@@ -77,6 +77,7 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A35 | Starting a watch on a folder that does not exist fails with a clear error. A folder that disappears while watching is reported through the watcher's error callback. | The project list already shows a missing file, and the snapshot service decides what to show. | 19 Oct |
 | A36 | A file whose size or modified time keeps changing for more than 5 seconds is not read, and a warning is logged. The next file event starts a fresh attempt. | A half-written file must never be parsed. | 19 Oct |
 | A37 | When the features file is missing after the debounce, the update carries `featuresText: null`. A missing PROCESS-LOG.md is `logText: null` and never an error. | A deleted file must show as missing, and the log is optional (A10). | 19 Oct |
+| A38 | A snapshot keeps the previous features when the features file exists but yields no features, and the previous events when the log exists but yields no events, each with a warning. With nothing earlier to keep, the empty result is published with its warnings. A deleted features file gives `featuresFile: 'missing'` and empty features, and a missing log gives `logFile: 'missing'`. | A half-typed or emptied file must not blank the board, and a deleted one must show as missing. | 19 Oct |
 
 ## Decisions
 
@@ -177,8 +178,9 @@ Acceptance criteria:
 
 Tasks:
 - [x] F03.1 Folder watcher with debounce, stable-size read and recreate handling, tested on real files
-- [ ] F03.2 Snapshot and SSE routes with keep-last-good
-- [ ] F03.3 Web live hook and Live/Reconnecting indicator
+- [x] F03.2 Project snapshot type, keep-last-good and the GET snapshot route
+- [ ] F03.3 SSE route with one watcher per project, subscriber tracking and clean shutdown
+- [ ] F03.4 Web live hook and Live/Reconnecting indicator
 
 ### F04 Board
 Priority: Must · Status: Todo · Branch: feature/F04-board · Estimate: 25 min
@@ -226,3 +228,4 @@ Tasks:
 | 19 Oct | Added F00.3–F00.6 (fixes) to F00 after review of the branch | /review |
 | 19 Oct | Added F01.3–F01.6 (fixes) to F01 after review of the branch | /review |
 | 19 Oct | Added F02.4–F02.7 (fixes) to F02 after review of the branch | /review |
+| 19 Oct | Split F03.2 into F03.2–F03.4 (snapshot route, SSE, web hook), as it was more than one task | /next-task |
