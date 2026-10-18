@@ -82,11 +82,12 @@ export function registerErrorHandler(app: FastifyInstance): void {
     return sendProblem(reply, request, { title: 'Internal Server Error', status: 500 });
   });
 
-  app.setNotFoundHandler((request, reply) =>
-    sendProblem(reply, request, {
+  app.setNotFoundHandler((request, reply) => {
+    request.log.warn({ method: request.method, url: request.url }, 'route not found');
+    return sendProblem(reply, request, {
       title: 'Not Found',
       status: 404,
       detail: `${request.method} ${request.url} does not exist`,
-    }),
-  );
+    });
+  });
 }

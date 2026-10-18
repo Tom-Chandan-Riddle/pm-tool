@@ -137,4 +137,32 @@ describe('correlation id', () => {
     const response = await app.inject({ method: 'GET', url: '/health' });
     expect(response.headers['x-correlation-id']).toMatch(/^[0-9a-f-]{36}$/);
   });
+
+  it('accepts an id of dots, dashes, underscores and exactly 128 characters', async () => {
+    const id = `a.b-c_${'x'.repeat(122)}`;
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health',
+      headers: { 'x-correlation-id': id },
+    });
+    expect(response.headers['x-correlation-id']).toBe(id);
+  });
+
+  it.each([
+    ['an id of 129 characters', 'x'.repeat(129)],
+    ['an id of 10,000 characters', 'x'.repeat(10_000)],
+    ['an id with spaces', 'has space'],
+    ['an id with non-ASCII characters', 'idé-ü'],
+    ['an empty id', ''],
+    ['a repeated header joined by Node', 'first-id, second-id'],
+  ])('replaces %s with a generated id', async (_name, id) => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/boom',
+      headers: { 'x-correlation-id': id },
+    });
+    const generatedId = response.headers['x-correlation-id'];
+    expect(generatedId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(response.json<{ correlationId: string }>().correlationId).toBe(generatedId);
+  });
 });

@@ -14,9 +14,9 @@ describe('parseConfig', () => {
     expect(() => parseConfig({ NODE_ENV: 'staging' })).toThrow(/NODE_ENV/);
   });
 
-  it('applies defaults when nothing is set', () => {
+  it('defaults to production so docs stay off when NODE_ENV is unset', () => {
     expect(parseConfig({})).toMatchObject({
-      NODE_ENV: 'development',
+      NODE_ENV: 'production',
       PORT: 3001,
       HOST: '127.0.0.1',
     });
