@@ -73,6 +73,7 @@ Expected depth:
 01:51 · TASK · F00.4 · NODE_ENV defaults to production with development set through .env.development. Inbound correlation IDs limited to 1-128 characters of [w.-], otherwise replaced. Unknown routes logged at warn. 25 server tests.
 01:56 · TASK · F00.5 · Log capture for tests, working redact paths, and 6 tests for correlation ID on every log line, redaction, one error-level entry per unexpected error, and a warn entry for unknown routes. 30 server tests. Correction to the F00.4 entry: its pattern is [\w.-], the backslash was lost when writing the log.
 01:59 · TASK · F00.6 · Process handlers moved to lifecycle.ts: single shutdown, 10 s force-exit timeout, error exit when close fails, fatal handlers. Dev pretty logs now a synchronous in-process stream so the last fatal line is written. 36 server tests.
+02:00 · SHIP · F00 · Merged to main with a merge commit. 40 tests passing (36 server, 4 web), verify green. Actual time about 1 h 40 min against a 25 min estimate, mostly review fixes F00.3 to F00.6.
 
 ## Summary
 

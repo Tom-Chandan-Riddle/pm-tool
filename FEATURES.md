@@ -65,7 +65,7 @@ Only assumptions I approved. Code that depends on one cites its ID.
 ## Features
 
 ### F00 Foundation
-Priority: Must · Status: In Progress · Branch: feature/F00-foundation · Estimate: 25 min
+Priority: Must · Status: Done · Branch: feature/F00-foundation · Estimate: 25 min
 
 Approach: only what the features use. Workspaces, strict TypeScript, ESLint and Prettier, Vitest. Server: `app.ts`, `server.ts`, zod config, pino with redaction, correlation ID, error handler, process fatal handlers, graceful shutdown, health, Scalar in development. Web: Vite React, TanStack Query, root error boundary. `npm run dev` starts both.
 
