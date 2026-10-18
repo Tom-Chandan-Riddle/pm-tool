@@ -61,6 +61,9 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A19 | The solution outline is kept as one raw markdown string in the snapshot. | The board only shows it as text. | 19 Oct |
 | A20 | Snapshot types and schemas live in `packages/shared` and are exported from its `index.ts`. | Server and web both need them. | 19 Oct |
 | A21 | A parse warning is `{section, line, message}` with a 1-based line number in the source file. | The user can find the bad line. | 19 Oct |
+| A22 | A criterion is superseded when its text has a `~~struck~~` span. A `superseded by F0Y` note in it fills the link, otherwise the link is empty. | Matches the pm-drill rule for striking replaced criteria. | 19 Oct |
+| A23 | Two features with the same ID are both kept, and the second gets a warning. | Nothing the user wrote is hidden. | 19 Oct |
+| A24 | A feature heading `F0X CR: name (amends F0Y)` or `F0X Fix: name (amends F0Y)` sets kind and amends, and the name has the marker and amends removed. Without amends it warns and amends is empty. Task kind comes from a `fix:` prefix or a `(CR)` suffix, and the task text is kept as written. | Keeps the board free to render its own badge. | 19 Oct |
 
 ## Decisions
 
@@ -136,7 +139,7 @@ Acceptance criteria:
 
 Tasks:
 - [x] F02.1 Snapshot types and FEATURES.md parser for the core sections
-- [ ] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
+- [x] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
 - [ ] F02.3 PROCESS-LOG.md event parser
 
 ### F03 Live updates

@@ -27,6 +27,12 @@ const TASK_TEXT = /^(F\d+\.\d+):?\s+(.+)$/;
 const CHECKBOX_ITEM = /^- \[([ xX])\]\s+(.+)$/;
 const ESTIMATE = /^(\d+)(?:\s*min)?$/i;
 const STRUCK_THROUGH = /^~~(.+)~~$/;
+const STRUCK_SPAN = /~~[^~]+~~/;
+const SUPERSEDED_BY = /superseded by (F\d+)/i;
+const CHANGE_MARKER = /^(CR|Fix):\s*/i;
+const AMENDS = /\s*\(?\s*\bamends\s+(F\d+)\s*\)?\s*$/i;
+const FIX_TASK = /^fix:/i;
+const CHANGE_REQUEST_TASK = /\(CR\)\s*$/i;
 const DEFAULT_STATUS: FeatureStatus = 'Todo';
 
 type SectionName =
@@ -174,11 +180,21 @@ function rowWarning(section: SectionName, tableRow: TableRow, columnCount: numbe
 
 function parseFeatures(body: readonly SourceLine[]): ParseResult<Feature[]> {
   const { sections } = splitByHeading(body, 3);
-  const results = sections.map(parseFeature);
-  return {
-    value: results.flatMap((result) => (result.value ? [result.value] : [])),
-    warnings: results.flatMap((result) => result.warnings),
-  };
+  const features: Feature[] = [];
+  const warnings: ParseWarning[] = [];
+  const seenIds = new Set<string>();
+  for (const section of sections) {
+    const result = parseFeature(section);
+    warnings.push(...result.warnings);
+    if (!result.value) continue;
+    // A23: a repeated ID is kept and warned about.
+    if (seenIds.has(result.value.id)) {
+      warnings.push(warn('features', section.number, `Duplicate feature ID ${result.value.id}`));
+    }
+    seenIds.add(result.value.id);
+    features.push(result.value);
+  }
+  return { value: features, warnings };
 }
 
 function parseFeature(section: HeadingSection): {
@@ -192,8 +208,9 @@ function parseFeature(section: HeadingSection): {
       warnings: [warn('features', section.number, `Skipped heading "${section.title}"`)],
     };
   }
-  const [, id = '', name = ''] = heading;
+  const [, id = '', title = ''] = heading;
   const warnings: ParseWarning[] = [];
+  const { name, kind, amends } = readFeatureTitle(id, title, section.number, warnings);
   const parts = readFeatureBody(section.body, warnings);
   if (!parts.metadata) {
     warnings.push(warn('features', section.number, `${id} has no "Priority: ..." metadata line`));
@@ -205,12 +222,40 @@ function parseFeature(section: HeadingSection): {
   const feature: Feature = {
     id,
     name,
+    kind,
+    amends,
     ...metadata,
     approach: parts.approach,
     criteria: parts.criteria,
     tasks: parts.tasks,
   };
   return { value: feature, warnings };
+}
+
+function readFeatureTitle(
+  id: string,
+  title: string,
+  line: number,
+  warnings: ParseWarning[],
+): Pick<Feature, 'name' | 'kind' | 'amends'> {
+  const amends = AMENDS.exec(title)?.[1] ?? null;
+  const withoutAmends = title.replace(AMENDS, '');
+  const marker = CHANGE_MARKER.exec(withoutAmends)?.[1]?.toLowerCase();
+  const kind = readFeatureKind(marker);
+  const name = withoutAmends.replace(CHANGE_MARKER, '').trim();
+  if (kind !== 'feature' && amends === null) {
+    warnings.push(warn('features', line, `${id} is a ${kind} without "(amends F0X)"`));
+  }
+  if (name === '') {
+    warnings.push(warn('features', line, `${id} has no name after its marker`));
+    return { name: title, kind, amends };
+  }
+  return { name, kind, amends };
+}
+
+function readFeatureKind(marker: string | undefined): Feature['kind'] {
+  if (marker === undefined) return 'feature';
+  return marker === 'fix' ? 'fix' : 'change-request';
 }
 
 function readMetadata(
@@ -279,7 +324,7 @@ function readChecklistLine(
   const [, mark = ' ', itemText = ''] = checkbox;
   const ticked = mark !== ' ';
   if (mode === 'criteria') {
-    parts.criteria.push({ text: itemText, ticked });
+    parts.criteria.push(readCriterion(itemText, ticked));
     return;
   }
   const task = TASK_TEXT.exec(itemText);
@@ -288,7 +333,18 @@ function readChecklistLine(
     return;
   }
   const [, id = '', taskText = ''] = task;
-  parts.tasks.push({ id, text: taskText, ticked });
+  parts.tasks.push({ id, text: taskText, ticked, kind: readTaskKind(taskText) });
+}
+
+function readCriterion(text: string, ticked: boolean): Criterion {
+  const superseded = STRUCK_SPAN.test(text);
+  const supersededBy = superseded ? (SUPERSEDED_BY.exec(text)?.[1] ?? null) : null;
+  return { text, ticked, superseded, supersededBy };
+}
+
+function readTaskKind(taskText: string): Task['kind'] {
+  if (FIX_TASK.test(taskText)) return 'fix';
+  return CHANGE_REQUEST_TASK.test(taskText) ? 'change-request' : 'task';
 }
 
 function readStatus(

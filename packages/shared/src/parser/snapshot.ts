@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const FEATURE_STATUSES = ['Todo', 'In Progress', 'Done', 'Cut'] as const;
+export const FEATURE_KINDS = ['feature', 'change-request', 'fix'] as const;
+export const TASK_KINDS = ['task', 'change-request', 'fix'] as const;
 
 // A21: line is 1-based in the source file.
 export const parseWarningSchema = z.object({
@@ -33,17 +35,24 @@ export const decisionSchema = z.object({
 export const criterionSchema = z.object({
   text: z.string(),
   ticked: z.boolean(),
+  // A22: a struck-through span marks a criterion superseded.
+  superseded: z.boolean(),
+  supersededBy: z.string().nullable(),
 });
 
 export const taskSchema = z.object({
   id: z.string(),
   text: z.string(),
   ticked: z.boolean(),
+  kind: z.enum(TASK_KINDS),
 });
 
 export const featureSchema = z.object({
   id: z.string(),
+  // A24: the CR:/Fix: marker and (amends F0X) are moved out of the name.
   name: z.string(),
+  kind: z.enum(FEATURE_KINDS),
+  amends: z.string().nullable(),
   priority: z.string(),
   status: z.enum(FEATURE_STATUSES),
   branch: z.string(),

@@ -88,6 +88,8 @@ Expected depth:
 02:34 · SHIP · F01 · Merged to main with a merge commit. 100 tests passing and 1 skipped on Windows (75 server, 24 web, 1 skipped permission test), verify green. Actual time about 45 min against a 35 min estimate, with the overrun in review fixes F01.3 to F01.6.
 02:48 · ASSUME · A19–A21 · Outline kept as raw markdown, snapshot types live in packages/shared, and a parse warning is {section, line, message} with a 1-based line.
 02:48 · TASK · F02.1 · Snapshot schemas and parseFeaturesFile for header, outline, assumptions, decisions, features and change log, with warnings instead of exceptions. 21 new shared tests, including a hand-counted real sample. A missing section warns, and only the first table of a section is read cleanly.
+02:55 · ASSUME · A22–A24 · A struck span marks a criterion superseded, a repeated feature ID is kept with a warning, and CR or Fix headings give kind and amends with a clean name.
+02:55 · TASK · F02.2 · Parser reads feature and task kinds, amends links and superseded criteria, and keeps going past a malformed heading. 9 new shared tests, 30 in total. Tests caught a lost word boundary in the amends regex and a missing allowance for spaces inside the parentheses.
 
 ## Summary
 

@@ -104,7 +104,9 @@ describe('parseFeaturesFile on a malformed or tiny file', () => {
       ['## Features', '### F01 Bare', 'Tasks:', '- [x] F01.1 Done'].join('\n'),
     );
 
-    expect(result.value.features[0]?.tasks).toEqual([{ id: 'F01.1', text: 'Done', ticked: true }]);
+    expect(result.value.features[0]?.tasks).toEqual([
+      { id: 'F01.1', text: 'Done', ticked: true, kind: 'task' },
+    ]);
     expect(warningsIn(result, 'features')).toEqual([
       { section: 'features', line: 2, message: 'F01 has no "Priority: ..." metadata line' },
     ]);
@@ -278,7 +280,12 @@ describe('parseFeaturesFile on a real FEATURES.md', () => {
       id: 'F00.1',
       text: 'Root scaffold and server foundation with /health test',
       ticked: true,
+      kind: 'task',
     });
+    expect(foundation?.tasks[2]).toMatchObject({ id: 'F00.3', kind: 'fix' });
+    expect(result.value.features.map((feature) => feature.kind)).toEqual(
+      Array.from({ length: 6 }, () => 'feature'),
+    );
     expect(parser?.criteria).toHaveLength(8);
     expect(parser?.tasks.map((task) => task.ticked)).toEqual([false, false, false]);
   });
@@ -288,5 +295,127 @@ describe('parseFeaturesFile on a real FEATURES.md', () => {
 
     expect(approach).toMatch(/^only what the features use\./);
     expect(approach).toContain('`npm run dev` starts both.');
+  });
+});
+
+const META = 'Priority: Must · Status: Todo · Branch: b · Estimate: 5 min';
+
+describe('parseFeaturesFile on change requests, fixes and superseded criteria', () => {
+  it('warns about a change request without amends and keeps the feature', () => {
+    const result = parseFeaturesFile(`## Features\n### F06 CR: Add export\n${META}`);
+
+    expect(result.value.features[0]).toMatchObject({
+      kind: 'change-request',
+      amends: null,
+      name: 'Add export',
+    });
+    expect(warningsIn(result, 'features')).toEqual([
+      { section: 'features', line: 2, message: 'F06 is a change-request without "(amends F0X)"' },
+    ]);
+  });
+
+  it('warns about a fix without amends', () => {
+    const result = parseFeaturesFile(`## Features\n### F07 Fix: Wrong total\n${META}`);
+
+    expect(warningsIn(result, 'features').map((warning) => warning.message)).toEqual([
+      'F07 is a fix without "(amends F0X)"',
+    ]);
+  });
+
+  it('keeps the raw title and warns when nothing is left after the marker', () => {
+    const result = parseFeaturesFile(`## Features\n### F06 CR: (amends F02)\n${META}`);
+
+    expect(result.value.features[0]).toMatchObject({ name: 'CR: (amends F02)', amends: 'F02' });
+    expect(warningsIn(result, 'features').map((warning) => warning.message)).toEqual([
+      'F06 has no name after its marker',
+    ]);
+  });
+
+  it('reads kind, amends and a clean name from CR and Fix headings in any case', () => {
+    const text = [
+      '## Features',
+      `### F06 CR: Add export (amends F02)\n${META}`,
+      `### F07 fix:  Wrong total  ( amends F01 )\n${META}`,
+      `### F08 FIX: Parens (in name) (amends  F03)\n${META}`,
+    ].join('\n');
+
+    const { value } = parseFeaturesFile(text);
+
+    expect(value.features.map((f) => [f.kind, f.amends, f.name])).toEqual([
+      ['change-request', 'F02', 'Add export'],
+      ['fix', 'F01', 'Wrong total'],
+      ['fix', 'F03', 'Parens (in name)'],
+    ]);
+  });
+
+  it('leaves an ordinary feature as a feature with no amends', () => {
+    const { value } = parseFeaturesFile(`## Features\n### F01 Projects\n${META}`);
+
+    expect(value.features[0]).toMatchObject({ kind: 'feature', amends: null, name: 'Projects' });
+  });
+
+  it('skips a malformed heading between two good features and keeps both', () => {
+    const text = [
+      '## Features',
+      `### F01 First\n${META}\nTasks:\n- [ ] F01.1 One`,
+      '### Stray notes',
+      '- [ ] F99.1 not a feature task',
+      `### F02 Second\n${META}\nTasks:\n- [x] F02.1 Two`,
+    ].join('\n');
+
+    const result = parseFeaturesFile(text);
+
+    expect(result.value.features.map((feature) => [feature.id, feature.tasks.length])).toEqual([
+      ['F01', 1],
+      ['F02', 1],
+    ]);
+    expect(warningsIn(result, 'features').map((warning) => warning.message)).toEqual([
+      'Skipped heading "Stray notes"',
+    ]);
+  });
+
+  it('keeps both features with a repeated ID and warns about the second (A23)', () => {
+    const text = `## Features\n### F01 First\n${META}\n### F01 Again\n${META}`;
+
+    const result = parseFeaturesFile(text);
+
+    expect(result.value.features.map((feature) => feature.name)).toEqual(['First', 'Again']);
+    expect(warningsIn(result, 'features')).toEqual([
+      { section: 'features', line: 4, message: 'Duplicate feature ID F01' },
+    ]);
+  });
+
+  it('marks a task as a fix by its prefix and as a change request by its suffix', () => {
+    const text = [
+      `## Features\n### F01 Sample\n${META}\nTasks:`,
+      '- [x] F01.1 Build it',
+      '- [x] F01.2 fix: handle empty input',
+      '- [ ] F01.3 Add a filter (CR)',
+      '- [ ] F01.4 Document how to fix: nothing',
+    ].join('\n');
+
+    const tasks = parseFeaturesFile(text).value.features[0]?.tasks ?? [];
+
+    expect(tasks.map((task) => task.kind)).toEqual(['task', 'fix', 'change-request', 'task']);
+    expect(tasks[1]?.text).toBe('fix: handle empty input');
+  });
+
+  it('flags a struck criterion as superseded and reads the feature that replaced it', () => {
+    const text = [
+      `## Features\n### F01 Sample\n${META}\nAcceptance criteria:`,
+      '- [x] Plain criterion',
+      '- [x] ~~Old rule~~ superseded by F06',
+      '- [ ] ~~Struck with no note~~',
+      '- [ ] Mentions superseded by F09 but is not struck',
+    ].join('\n');
+
+    const criteria = parseFeaturesFile(text).value.features[0]?.criteria ?? [];
+
+    expect(criteria.map((c) => [c.superseded, c.supersededBy, c.ticked])).toEqual([
+      [false, null, true],
+      [true, 'F06', true],
+      [true, null, false],
+      [false, null, false],
+    ]);
   });
 });
