@@ -15,3 +15,11 @@ GET {{baseUrl}}/projects/{{addProject.response.body.id}}/snapshot
 
 ### Snapshot of a project that does not exist (404 problem+json)
 GET {{baseUrl}}/projects/does-not-exist/snapshot
+
+### Event stream: the current snapshot at once, then one per change to either file
+# Leave this request open, edit FEATURES.md or PROCESS-LOG.md and watch events arrive.
+GET {{baseUrl}}/projects/{{addProject.response.body.id}}/events
+Accept: text/event-stream
+
+### Event stream of a project that does not exist (404 problem+json, no stream)
+GET {{baseUrl}}/projects/does-not-exist/events

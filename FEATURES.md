@@ -78,6 +78,8 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A36 | A file whose size or modified time keeps changing for more than 5 seconds is not read, and a warning is logged. The next file event starts a fresh attempt. | A half-written file must never be parsed. | 19 Oct |
 | A37 | When the features file is missing after the debounce, the update carries `featuresText: null`. A missing PROCESS-LOG.md is `logText: null` and never an error. | A deleted file must show as missing, and the log is optional (A10). | 19 Oct |
 | A38 | A snapshot keeps the previous features when the features file exists but yields no features, and the previous events when the log exists but yields no events, each with a warning. With nothing earlier to keep, the empty result is published with its warnings. A deleted features file gives `featuresFile: 'missing'` and empty features, and a missing log gives `logFile: 'missing'`. | A half-typed or emptied file must not blank the board, and a deleted one must show as missing. | 19 Oct |
+| A39 | A project is watched while at least one event stream is open for it. The watcher starts with the first stream and closes with the last. The web opens a stream only for the selected project, so A8 holds. | Several tabs must not fight over a single global watcher. | 19 Oct |
+| A40 | When a project's folder cannot be watched, its stream sends the missing snapshot and then ends, so the browser's reconnect retries it every 2 seconds. | The indicator shows Reconnecting instead of a false Live, and the stream recovers when the folder returns. | 19 Oct |
 
 ## Decisions
 
@@ -179,7 +181,7 @@ Acceptance criteria:
 Tasks:
 - [x] F03.1 Folder watcher with debounce, stable-size read and recreate handling, tested on real files
 - [x] F03.2 Project snapshot type, keep-last-good and the GET snapshot route
-- [ ] F03.3 SSE route with one watcher per project, subscriber tracking and clean shutdown
+- [x] F03.3 SSE route with one watcher per project, subscriber tracking and clean shutdown
 - [ ] F03.4 Web live hook and Live/Reconnecting indicator
 
 ### F04 Board
