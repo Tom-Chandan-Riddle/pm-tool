@@ -64,6 +64,8 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A22 | A criterion is superseded when its text has a `~~struck~~` span. A `superseded by F0Y` note in it fills the link, otherwise the link is empty. | Matches the pm-drill rule for striking replaced criteria. | 19 Oct |
 | A23 | Two features with the same ID are both kept, and the second gets a warning. | Nothing the user wrote is hidden. | 19 Oct |
 | A24 | A feature heading `F0X CR: name (amends F0Y)` or `F0X Fix: name (amends F0Y)` sets kind and amends, and the name has the marker and amends removed. Without amends it warns and amends is empty. Task kind comes from a `fix:` prefix or a `(CR)` suffix, and the task text is kept as written. | Keeps the board free to render its own badge. | 19 Oct |
+| A25 | A log entry's optional SHA is a 7 to 40 character hex word after the last ` · ` separator, and is removed from the text. A log entry's ID of `—`, `–` or `-` is read as none. | The log template only says to add the short SHA where there is one. | 19 Oct |
+| A26 | Only lines under the `## Log` heading are log entries. A non-blank line there that is not an entry gets a warning, and `<!-- -->` blocks are skipped. | The setup tables, template and summary must never produce events. | 19 Oct |
 
 ## Decisions
 
@@ -140,7 +142,7 @@ Acceptance criteria:
 Tasks:
 - [x] F02.1 Snapshot types and FEATURES.md parser for the core sections
 - [x] F02.2 Change requests, fixes, superseded criteria and tolerance for malformed sections
-- [ ] F02.3 PROCESS-LOG.md event parser
+- [x] F02.3 PROCESS-LOG.md event parser
 
 ### F03 Live updates
 Priority: Must · Status: Todo · Branch: feature/F03-live-updates · Estimate: 45 min

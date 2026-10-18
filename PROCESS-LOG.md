@@ -90,6 +90,8 @@ Expected depth:
 02:48 · TASK · F02.1 · Snapshot schemas and parseFeaturesFile for header, outline, assumptions, decisions, features and change log, with warnings instead of exceptions. 21 new shared tests, including a hand-counted real sample. A missing section warns, and only the first table of a section is read cleanly.
 02:55 · ASSUME · A22–A24 · A struck span marks a criterion superseded, a repeated feature ID is kept with a warning, and CR or Fix headings give kind and amends with a clean name.
 02:55 · TASK · F02.2 · Parser reads feature and task kinds, amends links and superseded criteria, and keeps going past a malformed heading. 9 new shared tests, 30 in total. Tests caught a lost word boundary in the amends regex and a missing allowance for spaces inside the parentheses.
+03:04 · ASSUME · A25–A26 · A log SHA is a hex word after the last separator and a dash ID means none. Only lines under the Log heading are entries, and commented blocks are skipped.
+03:04 · TASK · F02.3 · parseProcessLog turns entries into typed events with time, type, id, text, sha and line, and warns on bad times, unknown types and stray lines. 24 new shared tests, 54 in total, with the type counts checked against a copy of this log.
 
 ## Summary
 

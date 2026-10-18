@@ -1,6 +1,22 @@
 import { z } from 'zod';
 
 export const FEATURE_STATUSES = ['Todo', 'In Progress', 'Done', 'Cut'] as const;
+export const LOG_EVENT_TYPES = [
+  'START',
+  'READ',
+  'ASSUME',
+  'PLAN',
+  'DECISION',
+  'TASK',
+  'AI-FIX',
+  'RULE',
+  'REVIEW',
+  'SHIP',
+  'CHECKPOINT',
+  'CUT',
+  'FREEZE',
+  'RETRO',
+] as const;
 export const FEATURE_KINDS = ['feature', 'change-request', 'fix'] as const;
 export const TASK_KINDS = ['task', 'change-request', 'fix'] as const;
 
@@ -78,7 +94,19 @@ export const featuresDocumentSchema = z.object({
   changeLog: z.array(changeLogEntrySchema),
 });
 
+export const logEventSchema = z.object({
+  time: z.string(),
+  type: z.enum(LOG_EVENT_TYPES),
+  id: z.string().nullable(),
+  text: z.string(),
+  // A25: a hex word after the last separator.
+  sha: z.string().nullable(),
+  line: z.number().int().positive(),
+});
+
 export type ParseWarning = z.infer<typeof parseWarningSchema>;
+export type LogEvent = z.infer<typeof logEventSchema>;
+export type LogEventType = (typeof LOG_EVENT_TYPES)[number];
 export type Header = z.infer<typeof headerSchema>;
 export type Assumption = z.infer<typeof assumptionSchema>;
 export type Decision = z.infer<typeof decisionSchema>;
