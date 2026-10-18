@@ -237,3 +237,85 @@ describe('parseProcessLog on fenced code', () => {
     ]);
   });
 });
+
+describe('parseProcessLog on comments and spacing', () => {
+  it('keeps an entry that ends with a comment', () => {
+    const result = parseProcessLog(logFile('09:30 · TASK · F01 · Built it <!-- note -->'));
+
+    expect(result.warnings).toEqual([]);
+    expect(result.value.map((event) => event.text)).toEqual(['Built it']);
+  });
+
+  it('keeps an entry that follows a comment on the same line', () => {
+    const result = parseProcessLog(logFile('<!-- old --> 09:30 · TASK · F01 · Built it'));
+
+    expect(result.warnings).toEqual([]);
+    expect(result.value[0]).toMatchObject({ time: '09:30', text: 'Built it' });
+  });
+
+  it('removes two comments on one line', () => {
+    const result = parseProcessLog(logFile('09:30 · TASK · F01 · A<!-- x --><!-- y -->B'));
+
+    expect(result.value[0]?.text).toBe('AB');
+  });
+
+  it('keeps an entry after the closing marker of a multi-line comment', () => {
+    const result = parseProcessLog(
+      logFile('<!--', '09:00 · START · — · Example', '--> 09:30 · TASK · F01 · Real'),
+    );
+
+    expect(result.warnings).toEqual([]);
+    expect(result.value.map((event) => event.text)).toEqual(['Real']);
+  });
+
+  it('ignores a fully commented line without a warning', () => {
+    const result = parseProcessLog(logFile('<!-- 09:00 · START · — · Example -->'));
+
+    expect(result).toEqual({ value: [], warnings: [] });
+  });
+
+  it('leaves a closing marker with no opener in the text', () => {
+    const result = parseProcessLog(logFile('09:30 · TASK · F01 · arrow --> here'));
+
+    expect(result.value[0]?.text).toBe('arrow --> here');
+  });
+
+  it('warns at the opening line of an unclosed comment, hides what follows and keeps earlier entries (A29)', () => {
+    const result = parseProcessLog(
+      logFile(
+        '09:00 · START · — · Begin',
+        '09:10 · TASK · F01 · use <!-- in text',
+        '09:20 · TASK · F01.1 · hidden',
+      ),
+    );
+
+    expect(result.value.map((event) => event.text)).toEqual(['Begin', 'use']);
+    expect(result.warnings).toEqual([
+      { section: 'log', line: 5, message: 'HTML comment is never closed' },
+    ]);
+  });
+
+  it('accepts extra spaces or tabs around the separator (A30)', () => {
+    const result = parseProcessLog(
+      logFile('09:30  ·  TASK  ·  F01  ·  Built it', '09:31\t·\tREAD\t·\t—\t·\tRead it'),
+    );
+
+    expect(result.warnings).toEqual([]);
+    expect(result.value.map((event) => [event.time, event.type, event.id, event.text])).toEqual([
+      ['09:30', 'TASK', 'F01', 'Built it'],
+      ['09:31', 'READ', null, 'Read it'],
+    ]);
+  });
+
+  it('finds a SHA that has extra spaces around its separator', () => {
+    const { value } = parseProcessLog(logFile('09:30 · TASK · F01 · Built it  ·  8a1c263'));
+
+    expect(value[0]).toMatchObject({ text: 'Built it', sha: '8a1c263' });
+  });
+
+  it('keeps spacing inside the text as written', () => {
+    const { value } = parseProcessLog(logFile('09:30 · TASK · F01 · one  ·  two'));
+
+    expect(value[0]?.text).toBe('one  ·  two');
+  });
+});

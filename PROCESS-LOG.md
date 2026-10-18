@@ -95,6 +95,8 @@ Expected depth:
 03:16 · REVIEW · F02 · Two agents: 0 Must fix, 6 Should fix, 6 Notes. All six Should fix accepted as F02.4 to F02.7: fenced lines, log comments and spacing, table robustness, feature body metadata and approach. Notes left as they are, since they are rare or already give a visible warning: fence marker length, duplicate sections, criteria label variants, amends with trailing text, nested bullets and the ProjectSnapshot wording in the Approach. About a dozen strictness items were dropped as speculative.
 03:24 · ASSUME · A27–A28 · Fences follow the CommonMark rule and an unclosed one warns at its opening line. Fenced lines never create items, are kept in an Approach, and are ignored in the log.
 03:24 · TASK · F02.4 · readSourceLines matches fence marker type and length and reports an unclosed fence, and feature bodies and the log skip fenced lines. 17 new shared tests, 71 in total. Removing the feature-body skip made two tests fail, so they do catch it.
+03:34 · ASSUME · A29–A30 · Log comment spans are removed and the rest of the line is parsed, with an unclosed comment hiding the rest and warning. Fields may have any whitespace around the separator and the text is kept as written.
+03:34 · TASK · F02.5 · The log parser keeps entries with a trailing or leading comment, warns on an unclosed comment and accepts tabs and extra spaces around the separator. 10 new shared tests, 81 in total. A test caught a greedy SHA pattern that left a trailing space. An empty ID field now warns instead of reading as none.
 
 ## Summary
 
