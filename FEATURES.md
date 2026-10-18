@@ -50,6 +50,10 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A8 | Only the selected project is watched. Switching closes the previous watcher. | One user, one open project. | 19 Oct |
 | A9 | No pagination. The project list is small, and a snapshot returns all features and events because analytics need them. | A bounded list by nature. | 19 Oct |
 | A10 | A project path may be any readable `.md` file with at least one `### F` heading. PROCESS-LOG.md is looked up in the same folder and is optional. | The spec requires the heading check, not the filename. | 19 Oct |
+| A11 | `GET /projects` returns each project with `fileStatus` of `ok` or `missing`. | The web shows "file not found" without an error page. | 19 Oct |
+| A12 | A corrupt `projects.json` is logged and read as an empty list. It is left untouched until the next successful write replaces it. | Never destroy a hand-edited file on a read. | 19 Oct |
+| A13 | Two projects may share the same `featuresPath`. | Nothing in the brief forbids it. | 19 Oct |
+| A14 | Editing a project checks the features file again only when the path changed. | A rename must work while the file is missing. | 19 Oct |
 
 ## Decisions
 
@@ -87,9 +91,9 @@ Tasks:
 - [x] F00.6 fix: guard repeated shutdown signals, add a close timeout, flush the fatal log before exit
 
 ### F01 Projects
-Priority: Must · Status: Todo · Branch: feature/F01-projects · Estimate: 35 min
+Priority: Must · Status: In Progress · Branch: feature/F01-projects · Estimate: 35 min
 
-Approach: `features/projects` plugin on the server with a `projects.json` store (injected path), a service for add/edit/remove/validate, and routes. Web feature has a project list, add/edit form and switcher using TanStack Query. Typed errors for invalid path, not a features file and unknown id (A1, A2, A10).
+Approach: `apps/server/src/features/projects` is one Fastify plugin: `projects.store.ts` (reads and writes `projects.json` at an injected path), `projects.service.ts` (add, edit, remove, list, validates the features file), `projects.routes.ts` and `projects.http`. A new `PROJECTS_FILE` env var sets the store path. `Project` and its zod schemas go in `packages/shared` because the web uses them too. Failures are `ProblemError` subclasses: `ProjectNotFoundError` 404, `InvalidProjectFileError` 422 (A1, A2, A10). The web feature (`features/projects`) has a list, add/edit form and switcher on TanStack Query. Tested with `app.inject()` against real temp folders and a real `projects.json`.
 
 Acceptance criteria:
 - [ ] Adding a project with a valid features path returns 201 and the project survives a server restart
@@ -101,7 +105,7 @@ Acceptance criteria:
 - [ ] The web app lists, adds, edits, removes and switches projects, with loading, empty and error states
 
 Tasks:
-- [ ] F01.1 Projects store, service and routes with tests and `.http` file
+- [x] F01.1 Projects store, service and routes with tests and `.http` file
 - [ ] F01.2 Web projects list, form and switcher
 
 ### F02 Parser

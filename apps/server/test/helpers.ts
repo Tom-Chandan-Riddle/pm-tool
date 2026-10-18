@@ -5,6 +5,7 @@ export const testConfig = {
   NODE_ENV: 'test',
   HOST: '127.0.0.1',
   PORT: 3001,
+  PROJECTS_FILE: 'projects.json',
   LOG_LEVEL: 'silent',
 } as const satisfies Config;
 

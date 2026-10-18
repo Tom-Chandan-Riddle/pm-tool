@@ -74,6 +74,8 @@ Expected depth:
 01:56 · TASK · F00.5 · Log capture for tests, working redact paths, and 6 tests for correlation ID on every log line, redaction, one error-level entry per unexpected error, and a warn entry for unknown routes. 30 server tests. Correction to the F00.4 entry: its pattern is [\w.-], the backslash was lost when writing the log.
 01:59 · TASK · F00.6 · Process handlers moved to lifecycle.ts: single shutdown, 10 s force-exit timeout, error exit when close fails, fatal handlers. Dev pretty logs now a synchronous in-process stream so the last fatal line is written. 36 server tests.
 02:00 · SHIP · F00 · Merged to main with a merge commit. 40 tests passing (36 server, 4 web), verify green. Actual time about 1 h 40 min against a 25 min estimate, mostly review fixes F00.3 to F00.6.
+02:07 · ASSUME · A11–A14 · File status on the project list, corrupt projects.json left untouched until the next write, duplicate paths allowed, path re-checked on edit only when it changed.
+02:07 · TASK · F01.1 · Projects store, service and routes with problem+json errors, PROJECTS_FILE config and a .http file. 20 new tests, 56 server tests in total. Schemas stay in the server for now because packages/shared resolves through dist, which typecheck runs before. A relative featuresPath is stored as typed.
 
 ## Summary
 
