@@ -168,12 +168,23 @@ function parseTable<Row>(
 ): ParseResult<Row[]> {
   const warnings: ParseWarning[] = [];
   const rows: Row[] = [];
-  for (const tableRow of readTableRows(body)) {
+  const table = readTableRows(body);
+  if (table.missingSeparatorLine !== null) {
+    warnings.push(
+      warn(section, table.missingSeparatorLine, 'Table has no separator row like "|---|---|"'),
+    );
+  }
+  for (const tableRow of table.rows) {
     if (tableRow.cells.length === columnCount) {
       rows.push(toRow(tableRow.cells));
     } else {
       warnings.push(rowWarning(section, tableRow, columnCount));
     }
+  }
+  for (const line of table.ignoredTableLines) {
+    warnings.push(
+      warn(section, line, 'Only the first table in a section is read, this one is ignored'),
+    );
   }
   return { value: rows, warnings };
 }

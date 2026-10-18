@@ -97,6 +97,8 @@ Expected depth:
 03:24 · TASK · F02.4 · readSourceLines matches fence marker type and length and reports an unclosed fence, and feature bodies and the log skip fenced lines. 17 new shared tests, 71 in total. Removing the feature-body skip made two tests fail, so they do catch it.
 03:34 · ASSUME · A29–A30 · Log comment spans are removed and the rest of the line is parsed, with an unclosed comment hiding the rest and warning. Fields may have any whitespace around the separator and the text is kept as written.
 03:34 · TASK · F02.5 · The log parser keeps entries with a trailing or leading comment, warns on an unclosed comment and accepts tabs and extra spaces around the separator. 10 new shared tests, 81 in total. A test caught a greedy SHA pattern that left a trailing space. An empty ID field now warns instead of reading as none.
+03:47 · ASSUME · A31–A32 · A backslash-escaped pipe stays in a table cell. Only the first table in a section is read, a later table warns, and a table with no separator row warns and reads no rows.
+03:47 · TASK · F02.6 · Table reading handles escaped pipes, warns about a missing separator row and ignores later tables with a warning. 7 new shared tests, 88 in total. A pipe inside a code span still needs the backslash, as on GitHub.
 
 ## Summary
 

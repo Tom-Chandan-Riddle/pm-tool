@@ -495,3 +495,87 @@ describe('parseFeaturesFile on fenced code', () => {
     ]);
   });
 });
+
+describe('parseFeaturesFile on table edge cases', () => {
+  const HEADER = ['| ID | Decision | Alternatives | Reason |', '|---|---|---|---|'];
+
+  it('warns about a table with no separator row and reads no rows from it (A32)', () => {
+    const text = ['## Decisions', '| D1 | One | none | because |', '| D2 | Two | none | because |'];
+
+    const result = parseFeaturesFile(text.join('\n'));
+
+    expect(result.value.decisions).toEqual([]);
+    expect(warningsIn(result, 'decisions')).toEqual([
+      { section: 'decisions', line: 2, message: 'Table has no separator row like "|---|---|"' },
+    ]);
+  });
+
+  it('reads only the first table and warns once about a second one (A32)', () => {
+    const text = [
+      '## Decisions',
+      ...HEADER,
+      '| D1 | One | none | because |',
+      '',
+      '| Other | Header | Row | Here |',
+      '|---|---|---|---|',
+      '| x | y | z | w |',
+    ];
+
+    const result = parseFeaturesFile(text.join('\n'));
+
+    expect(result.value.decisions.map((decision) => decision.id)).toEqual(['D1']);
+    expect(warningsIn(result, 'decisions')).toEqual([
+      {
+        section: 'decisions',
+        line: 6,
+        message: 'Only the first table in a section is read, this one is ignored',
+      },
+    ]);
+  });
+
+  it('treats rows after a blank line as a later table and warns instead of dropping them silently', () => {
+    const text = ['## Decisions', ...HEADER, '', '| D1 | One | none | because |'];
+
+    const result = parseFeaturesFile(text.join('\n'));
+
+    expect(result.value.decisions).toEqual([]);
+    expect(warningsIn(result, 'decisions').map((warning) => warning.line)).toEqual([5]);
+  });
+
+  it('keeps an escaped pipe inside a cell as a plain pipe (A31)', () => {
+    const text = ['## Decisions', ...HEADER, String.raw`| D1 | uses a\|b | none | because |`];
+
+    const result = parseFeaturesFile(text.join('\n'));
+
+    expect(result.value.decisions[0]).toMatchObject({ id: 'D1', text: 'uses a|b' });
+    expect(warningsIn(result, 'decisions')).toEqual([]);
+  });
+
+  it('keeps an escaped pipe at the end of the last cell', () => {
+    const text = ['## Decisions', ...HEADER, String.raw`| D1 | One | none | ends with \|`];
+
+    const { value } = parseFeaturesFile(text.join('\n'));
+
+    expect(value.decisions[0]?.reason).toBe('ends with |');
+  });
+
+  it('still reads aligned separators and rows with no trailing pipe', () => {
+    const text = [
+      '## Decisions',
+      '| ID | Decision | Alternatives | Reason |',
+      '|:---|:---:|---:|---|',
+      '| D1 | One | none | because',
+    ];
+
+    expect(parseFeaturesFile(text.join('\n')).value.decisions.map((d) => d.id)).toEqual(['D1']);
+  });
+
+  it('ignores a table inside a code fence', () => {
+    const text = ['## Decisions', '```', ...HEADER, '| D1 | One | none | because |', '```'];
+
+    const result = parseFeaturesFile(text.join('\n'));
+
+    expect(result.value.decisions).toEqual([]);
+    expect(warningsIn(result, 'decisions')).toEqual([]);
+  });
+});

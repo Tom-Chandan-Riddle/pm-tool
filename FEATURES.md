@@ -70,6 +70,8 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A28 | Fenced lines never switch mode or create items in a feature body or the log. In an Approach they are kept as text. In the log they are ignored with no warning. | Code samples are documentation, not entries. | 19 Oct |
 | A29 | In the log, `<!-- -->` spans are removed and the rest of the line is still parsed. An unclosed `<!--` hides the rest of the Log section and gets a warning at its opening line, like an unclosed fence. | A comment must not delete a real entry, and a half-typed one must be visible. | 19 Oct |
 | A30 | The separator between log fields is a middle dot with any whitespace around it, and the fields are trimmed. The text after the third separator is kept as written. | Hand-typed entries with extra spaces or tabs should still count. | 19 Oct |
+| A31 | In a table, a pipe splits cells unless it is written as `\|`, which stays in the cell as a plain pipe. A pipe inside a code span still needs the backslash. | The GitHub table rule. | 19 Oct |
+| A32 | Only the first table in a section is read. A later table is ignored with a warning at its first line. A table with no separator row is not read and gets a warning at its first line. | Nothing is hidden silently, and rows after a stray blank line are reported. | 19 Oct |
 
 ## Decisions
 
@@ -149,7 +151,7 @@ Tasks:
 - [x] F02.3 PROCESS-LOG.md event parser
 - [x] F02.4 fix: skip fenced lines in feature bodies and the log, and match fence marker type and length
 - [x] F02.5 fix: keep log entries with a trailing comment, warn on an unclosed comment, trim fields around the separator
-- [ ] F02.6 fix: warn when a table has no separator row, support escaped pipes, read only the first table
+- [x] F02.6 fix: warn when a table has no separator row, support escaped pipes, read only the first table
 - [ ] F02.7 fix: first Priority line wins with a duplicate warning, and the approach runs to the next label across blank lines
 
 ### F03 Live updates

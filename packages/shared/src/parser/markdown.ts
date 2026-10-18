@@ -91,17 +91,67 @@ export function splitByHeading(
   return { preamble, sections };
 }
 
-export function readTableRows(body: readonly SourceLine[]): TableRow[] {
-  const rows = body
-    .filter((line) => !line.inFence && line.text.trim().startsWith('|'))
-    .map((line) => ({ cells: splitTableCells(line.text), number: line.number }));
+export interface TableRead {
+  readonly rows: readonly TableRow[];
+  readonly missingSeparatorLine: number | null;
+  readonly ignoredTableLines: readonly number[];
+}
+
+// A32: only the first block of consecutive pipe lines is read. Later blocks are reported, not read.
+export function readTableRows(body: readonly SourceLine[]): TableRead {
+  const [firstTable = [], ...laterTables] = groupConsecutiveLines(
+    body.filter((line) => !line.inFence && line.text.trim().startsWith('|')),
+  );
+  const ignoredTableLines = laterTables.flatMap((table) =>
+    table.slice(0, 1).map((line) => line.number),
+  );
+  const rows = firstTable.map((line) => ({
+    cells: splitTableCells(line.text),
+    number: line.number,
+  }));
   const separatorIndex = rows.findIndex((row) =>
     row.cells.every((cell) => TABLE_SEPARATOR_CELL.test(cell)),
   );
-  return separatorIndex === -1 ? [] : rows.slice(separatorIndex + 1);
+  if (separatorIndex === -1) {
+    return { rows: [], missingSeparatorLine: firstTable[0]?.number ?? null, ignoredTableLines };
+  }
+  return { rows: rows.slice(separatorIndex + 1), missingSeparatorLine: null, ignoredTableLines };
 }
 
+function groupConsecutiveLines(lines: readonly SourceLine[]): SourceLine[][] {
+  const groups: SourceLine[][] = [];
+  for (const line of lines) {
+    const currentGroup = groups.at(-1);
+    const previousLine = currentGroup?.at(-1);
+    if (currentGroup && previousLine && line.number === previousLine.number + 1) {
+      currentGroup.push(line);
+    } else {
+      groups.push([line]);
+    }
+  }
+  return groups;
+}
+
+// A31: a pipe splits cells unless it is written as `\|`, which stays in the cell as a plain pipe.
 function splitTableCells(lineText: string): string[] {
-  const inner = lineText.trim().replace(/^\|/, '').replace(/\|$/, '');
-  return inner.split('|').map((cell) => cell.trim());
+  const text = lineText.trim();
+  const cells: string[] = [];
+  let cell = '';
+  let endedOnDelimiter = false;
+  for (let index = 0; index < text.length; index++) {
+    const character = text.charAt(index);
+    endedOnDelimiter = false;
+    if (character === '\\' && text.charAt(index + 1) === '|') {
+      cell += '|';
+      index++;
+    } else if (character === '|') {
+      cells.push(cell);
+      cell = '';
+      endedOnDelimiter = true;
+    } else {
+      cell += character;
+    }
+  }
+  if (!endedOnDelimiter) cells.push(cell);
+  return cells.slice(1).map((value) => value.trim());
 }
