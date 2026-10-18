@@ -99,6 +99,8 @@ Expected depth:
 03:34 · TASK · F02.5 · The log parser keeps entries with a trailing or leading comment, warns on an unclosed comment and accepts tabs and extra spaces around the separator. 10 new shared tests, 81 in total. A test caught a greedy SHA pattern that left a trailing space. An empty ID field now warns instead of reading as none.
 03:47 · ASSUME · A31–A32 · A backslash-escaped pipe stays in a table cell. Only the first table in a section is read, a later table warns, and a table with no separator row warns and reads no rows.
 03:47 · TASK · F02.6 · Table reading handles escaped pipes, warns about a missing separator row and ignores later tables with a warning. 7 new shared tests, 88 in total. A pipe inside a code span still needs the backslash, as on GitHub.
+03:52 · ASSUME · A33–A34 · An Approach runs to the next label with blank lines kept, and only the first Priority line of a feature is its metadata, with a later one ignored and warned about.
+03:52 · TASK · F02.7 · The feature body keeps the first Priority line, warns about a duplicate, and reads an approach across blank lines to the next label. 7 new shared tests, 95 in total. My first edit script failed on an escape and applied nothing, so the new tests ran red before the change.
 
 ## Summary
 

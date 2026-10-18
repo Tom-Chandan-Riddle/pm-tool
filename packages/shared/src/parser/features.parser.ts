@@ -309,8 +309,13 @@ function readFeatureBody(body: readonly SourceLine[], warnings: ParseWarning[]):
     }
     const text = line.text.trim();
     if (text.startsWith('Priority:')) {
-      parts.metadata = { fields: readLabelledParts(text), line: line.number };
-      mode = 'prose';
+      // A34: the first Priority line is the metadata, a later one is ignored.
+      if (parts.metadata) {
+        warnings.push(warn('features', line.number, 'Duplicate "Priority:" metadata line'));
+      } else {
+        parts.metadata = { fields: readLabelledParts(text), line: line.number };
+        mode = 'prose';
+      }
     } else if (text.startsWith('Approach:')) {
       approachLines.push(text.slice('Approach:'.length).trim());
       mode = 'approach';
@@ -319,13 +324,13 @@ function readFeatureBody(body: readonly SourceLine[], warnings: ParseWarning[]):
     } else if (text === 'Tasks:') {
       mode = 'tasks';
     } else if (mode === 'approach') {
-      if (text === '') mode = 'prose';
-      else approachLines.push(text);
+      // A33: the approach runs to the next label, so blank lines stay inside it.
+      approachLines.push(text);
     } else if (mode === 'criteria' || mode === 'tasks') {
       readChecklistLine(line, mode, parts, warnings);
     }
   }
-  parts.approach = approachLines.join('\n');
+  parts.approach = approachLines.join('\n').trim();
   return parts;
 }
 

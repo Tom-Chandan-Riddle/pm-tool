@@ -72,6 +72,8 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A30 | The separator between log fields is a middle dot with any whitespace around it, and the fields are trimmed. The text after the third separator is kept as written. | Hand-typed entries with extra spaces or tabs should still count. | 19 Oct |
 | A31 | In a table, a pipe splits cells unless it is written as `\|`, which stays in the cell as a plain pipe. A pipe inside a code span still needs the backslash. | The GitHub table rule. | 19 Oct |
 | A32 | Only the first table in a section is read. A later table is ignored with a warning at its first line. A table with no separator row is not read and gets a warning at its first line. | Nothing is hidden silently, and rows after a stray blank line are reported. | 19 Oct |
+| A33 | An Approach runs from its `Approach:` line to the next label (`Acceptance criteria:`, `Tasks:` or the metadata line). Blank lines inside it are kept, and blank lines at its start and end are trimmed. | Approaches written as several paragraphs must not lose the later ones. | 19 Oct |
+| A34 | Only the first `Priority:` line of a feature is its metadata. A later line starting with `Priority:` is ignored with a warning at its line. | A stray line must not wipe the status, branch and estimate. | 19 Oct |
 
 ## Decisions
 
@@ -152,7 +154,7 @@ Tasks:
 - [x] F02.4 fix: skip fenced lines in feature bodies and the log, and match fence marker type and length
 - [x] F02.5 fix: keep log entries with a trailing comment, warn on an unclosed comment, trim fields around the separator
 - [x] F02.6 fix: warn when a table has no separator row, support escaped pipes, read only the first table
-- [ ] F02.7 fix: first Priority line wins with a duplicate warning, and the approach runs to the next label across blank lines
+- [x] F02.7 fix: first Priority line wins with a duplicate warning, and the approach runs to the next label across blank lines
 
 ### F03 Live updates
 Priority: Must · Status: Todo · Branch: feature/F03-live-updates · Estimate: 45 min

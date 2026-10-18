@@ -579,3 +579,74 @@ describe('parseFeaturesFile on table edge cases', () => {
     expect(warningsIn(result, 'decisions')).toEqual([]);
   });
 });
+
+describe('parseFeaturesFile on feature body structure', () => {
+  const FEATURE = `## Features\n### F01 Sample\n${META}`;
+
+  it('keeps the first Priority line and warns about a second one (A34)', () => {
+    const text = `${FEATURE}\nPriority: Should · Status: Done · Branch: other · Estimate: 99 min`;
+
+    const result = parseFeaturesFile(text);
+
+    expect(result.value.features[0]).toMatchObject({
+      priority: 'Must',
+      status: 'Todo',
+      branch: 'b',
+      estimateMinutes: 5,
+    });
+    expect(warningsIn(result, 'features')).toEqual([
+      { section: 'features', line: 4, message: 'Duplicate "Priority:" metadata line' },
+    ]);
+  });
+
+  it('does not let a line inside the approach that starts with Priority replace the metadata', () => {
+    const text = `${FEATURE}\nApproach: first line\nPriority: bar continuing\nsecond line`;
+
+    const result = parseFeaturesFile(text);
+
+    expect(result.value.features[0]).toMatchObject({ priority: 'Must', status: 'Todo' });
+    expect(result.value.features[0]?.approach).toBe('first line\nsecond line');
+    expect(warningsIn(result, 'features').map((warning) => warning.line)).toEqual([5]);
+  });
+
+  it('keeps every paragraph of an approach and drops the blank lines around it (A33)', () => {
+    const text = `${FEATURE}\n\nApproach: first paragraph\n\nsecond paragraph\n\nAcceptance criteria:\n- [ ] One`;
+
+    const feature = parseFeaturesFile(text).value.features[0];
+
+    expect(feature?.approach).toBe('first paragraph\n\nsecond paragraph');
+    expect(feature?.criteria).toHaveLength(1);
+  });
+
+  it('ends the approach at Tasks when there are no criteria', () => {
+    const text = `${FEATURE}\nApproach: only this\n\nTasks:\n- [ ] F01.1 Do it`;
+
+    const feature = parseFeaturesFile(text).value.features[0];
+
+    expect(feature?.approach).toBe('only this');
+    expect(feature?.tasks).toHaveLength(1);
+  });
+
+  it('reads a metadata line placed after the approach and leaves it out of the approach', () => {
+    const text = `## Features\n### F01 Sample\nApproach: first\n\nmore\n${META}`;
+
+    const feature = parseFeaturesFile(text).value.features[0];
+
+    expect(feature?.approach).toBe('first\n\nmore');
+    expect(feature).toMatchObject({ priority: 'Must', branch: 'b' });
+  });
+
+  it('keeps blank lines inside a fenced block in the approach', () => {
+    const text = `${FEATURE}\nApproach: sample:\n\`\`\`\nline one\n\nline two\n\`\`\``;
+
+    const approach = parseFeaturesFile(text).value.features[0]?.approach;
+
+    expect(approach).toBe('sample:\n```\nline one\n\nline two\n```');
+  });
+
+  it('gives an empty approach when nothing follows the label', () => {
+    const text = `${FEATURE}\nApproach:\n\nTasks:\n- [ ] F01.1 Do it`;
+
+    expect(parseFeaturesFile(text).value.features[0]?.approach).toBe('');
+  });
+});
