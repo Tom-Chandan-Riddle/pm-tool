@@ -1,0 +1,46 @@
+.list {
+  list-style: none;
+  padding: 0;
+}
+
+.list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.path {
+  color: #555;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 32rem;
+}
+
+.form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.error {
+  color: #b00020;
+  margin: 0;
+}
+
+.warning {
+  color: #8a5a00;
+}
+
+.badge {
+  color: #1a6b2f;
+}

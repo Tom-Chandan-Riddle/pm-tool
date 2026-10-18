@@ -1,0 +1,60 @@
+@baseUrl = http://127.0.0.1:3001
+
+### List projects
+GET {{baseUrl}}/projects
+
+### Add a project (change the path to a real FEATURES.md)
+# @name addProject
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{
+  "name": "PM Tool",
+  "featuresPath": "C:/CHANDAN S S/Claude Workspace/Claude Code/pm-tool/FEATURES.md"
+}
+
+### Edit the project just added
+PUT {{baseUrl}}/projects/{{addProject.response.body.id}}
+Content-Type: application/json
+
+{
+  "name": "PM Tool (renamed)",
+  "featuresPath": "C:/CHANDAN S S/Claude Workspace/Claude Code/pm-tool/FEATURES.md"
+}
+
+### Remove the project just added
+DELETE {{baseUrl}}/projects/{{addProject.response.body.id}}
+
+### Failure: a path that does not exist returns 422
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "Ghost", "featuresPath": "C:/does/not/exist.md" }
+
+### Failure: empty name and path return 400 with field errors
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "", "featuresPath": "" }
+
+### Failure: unknown id returns 404
+DELETE {{baseUrl}}/projects/unknown-id
+
+### Failure: while projects.json is invalid, add, edit and remove return 409
+# Break the file by hand first, for example by adding a trailing comma.
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "Blocked", "featuresPath": "C:/CHANDAN S S/Claude Workspace/Claude Code/pm-tool/FEATURES.md" }
+
+### Failure: a relative path returns 400
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "Relative", "featuresPath": "FEATURES.md" }
+
+### Failure: a path that is not .md returns 400
+POST {{baseUrl}}/projects
+Content-Type: application/json
+
+{ "name": "Text", "featuresPath": "C:/Windows/win.ini" }

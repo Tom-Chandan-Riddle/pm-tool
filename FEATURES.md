@@ -50,6 +50,14 @@ Only assumptions I approved. Code that depends on one cites its ID.
 | A8 | Only the selected project is watched. Switching closes the previous watcher. | One user, one open project. | 19 Oct |
 | A9 | No pagination. The project list is small, and a snapshot returns all features and events because analytics need them. | A bounded list by nature. | 19 Oct |
 | A10 | A project path may be any readable `.md` file with at least one `### F` heading. PROCESS-LOG.md is looked up in the same folder and is optional. | The spec requires the heading check, not the filename. | 19 Oct |
+| A11 | `GET /projects` returns each project with `fileStatus` of `ok` or `missing`. | The web shows "file not found" without an error page. | 19 Oct |
+| ~~A12~~ | ~~A corrupt `projects.json` is logged and read as an empty list. It is left untouched until the next successful write replaces it. | Never destroy a hand-edited file on a read.~~ Superseded by A17. | 19 Oct |
+| A13 | Two projects may share the same `featuresPath`. | Nothing in the brief forbids it. | 19 Oct |
+| A14 | Editing a project checks the features file again only when the path changed. | A rename must work while the file is missing. | 19 Oct |
+| A15 | The selected project id is remembered in the browser's localStorage. If it is unavailable or the project is gone, nothing is selected. | A reload should keep the user's project. | 19 Oct |
+| A16 | Removing a project asks for confirmation on the row first. | It is an easy click to make by mistake. | 19 Oct |
+| A17 | A projects.json that is not valid JSON, is not an array, or has any invalid entry is never overwritten. Reads list the valid entries and log the rest. Add, edit and remove return 409 until the file is fixed by hand. A leading byte order mark is ignored. | A hand-edited file must not be lost. Supersedes A12. | 19 Oct |
+| A18 | A project path must be absolute and end in `.md` (any case), at most 1024 characters. A name is at most 200. Breaking a rule returns 400 with a field error. A path that cannot be read returns 422 naming the cause: missing, no permission, or a folder. Tightens A10. | Stops arbitrary files being probed and avoids paths that depend on where the server started. | 19 Oct |
 
 ## Decisions
 
@@ -87,22 +95,26 @@ Tasks:
 - [x] F00.6 fix: guard repeated shutdown signals, add a close timeout, flush the fatal log before exit
 
 ### F01 Projects
-Priority: Must · Status: Todo · Branch: feature/F01-projects · Estimate: 35 min
+Priority: Must · Status: Done · Branch: feature/F01-projects · Estimate: 35 min
 
-Approach: `features/projects` plugin on the server with a `projects.json` store (injected path), a service for add/edit/remove/validate, and routes. Web feature has a project list, add/edit form and switcher using TanStack Query. Typed errors for invalid path, not a features file and unknown id (A1, A2, A10).
+Approach: `apps/server/src/features/projects` is one Fastify plugin: `projects.store.ts` (reads and writes `projects.json` at an injected path), `projects.service.ts` (add, edit, remove, list, validates the features file), `projects.routes.ts` and `projects.http`. A new `PROJECTS_FILE` env var sets the store path. `Project` and its zod schemas go in `packages/shared` because the web uses them too. Failures are `ProblemError` subclasses: `ProjectNotFoundError` 404, `InvalidProjectFileError` 422 (A1, A2, A10). The web feature (`features/projects`) has a list, add/edit form and switcher on TanStack Query. Tested with `app.inject()` against real temp folders and a real `projects.json`.
 
 Acceptance criteria:
-- [ ] Adding a project with a valid features path returns 201 and the project survives a server restart
-- [ ] Adding a path that doesn't exist, is unreadable, or has no `### F` heading returns 422 with a clear message
-- [ ] Adding with an empty name or empty path returns 400 with field errors
-- [ ] Editing and removing a project works; an unknown id returns 404
-- [ ] A project whose file is later missing shows a "file not found" state, not an error page
-- [ ] A hand-edited or empty `projects.json` loads; a corrupt one fails with a clear log message and an empty list
-- [ ] The web app lists, adds, edits, removes and switches projects, with loading, empty and error states
+- [x] Adding a project with a valid features path returns 201 and the project survives a server restart
+- [x] Adding a path that doesn't exist, is unreadable, or has no `### F` heading returns 422 with a clear message
+- [x] Adding with an empty name or empty path returns 400 with field errors
+- [x] Editing and removing a project works; an unknown id returns 404
+- [x] A project whose file is later missing shows a "file not found" state, not an error page
+- [x] A hand-edited or empty `projects.json` loads; a corrupt one fails with a clear log message and an empty list
+- [x] The web app lists, adds, edits, removes and switches projects, with loading, empty and error states
 
 Tasks:
-- [ ] F01.1 Projects store, service and routes with tests and `.http` file
-- [ ] F01.2 Web projects list, form and switcher
+- [x] F01.1 Projects store, service and routes with tests and `.http` file
+- [x] F01.2 Web projects list, form and switcher
+- [x] F01.3 fix: stop a hand-edited projects.json being overwritten (strip BOM, keep valid entries, refuse to write over an unparseable file)
+- [x] F01.4 fix: require an absolute .md path (A10), name the cause in the 422, test the unreadable case
+- [x] F01.5 fix: close the edit form when its project is removed, clear a selection that vanishes after a refetch, clear a stale add error
+- [x] F01.6 fix: log a corrupt projects.json once, remove the temp file when a write fails and test the 500, report a folder as missing
 
 ### F02 Parser
 Priority: Must · Status: Todo · Branch: feature/F02-parser · Estimate: 40 min
@@ -189,3 +201,4 @@ Tasks:
 |---|---|---|
 | 19 Oct | Plan created for Phase 1 (F00–F05) | /kickoff |
 | 19 Oct | Added F00.3–F00.6 (fixes) to F00 after review of the branch | /review |
+| 19 Oct | Added F01.3–F01.6 (fixes) to F01 after review of the branch | /review |
